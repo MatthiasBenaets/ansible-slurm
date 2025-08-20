@@ -2,11 +2,13 @@
 - name: Set timedate
   hosts: all
   remote_user: "{{ remote_user }}"
+  tags: timedate
   roles:
     - timedate
 
 - name: Update hostname and populate /etc/hosts
   hosts: all
   remote_user: "{{ remote_user }}"
+  tags: hostname
   roles:
     - hostname
