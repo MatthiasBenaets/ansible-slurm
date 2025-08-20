@@ -1,4 +1,11 @@
 ---
+- name: Common setup
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: common
+  roles:
+    - common
+
 - name: Set timedate
   hosts: all
   remote_user: "{{ remote_user }}"

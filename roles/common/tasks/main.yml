@@ -1,0 +1,8 @@
+---
+- name: Install dependencies for ansible
+  become: true
+  ansible.builtin.package:
+    name:
+      - python3-pexpect
+    state: present
+  tags: common
