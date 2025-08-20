@@ -1,0 +1,8 @@
+---
+- name: Configure Realmd and join Active Directory
+  ansible.builtin.include_tasks: realmd.yml
+  tags: [ad, realmd]
+
+- name: Configure SSSD and PAM for Active Directory users
+  ansible.builtin.include_tasks: sssd.yml
+  tags: [ad, sssd]

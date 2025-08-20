@@ -19,3 +19,11 @@
   tags: hostname
   roles:
     - hostname
+
+- name: Join Active Directory
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: ad
+  roles:
+    - role: ad
+      when: auth_backend == "ad"

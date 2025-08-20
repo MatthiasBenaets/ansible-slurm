@@ -1,4 +1,15 @@
 ---
+# GENERAL
 # ansible_sudo_pass: secret
 remote_user: matthias
 timezone: Europe/Brussels
+domain_name: example.com
+
+# AUTHENTICATION
+auth_backend: ad # ad/ldap/local
+
+# ACTIVE DIRECTORY
+ad_user: Administrator
+ad_password: secret
+ad_domain: "ad.{{domain_name}}"
+ad_rdns: true
