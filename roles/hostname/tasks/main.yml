@@ -1,0 +1,17 @@
+---
+- name: Update system hostname
+  become: true
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  tags: hostname
+
+- name: Add cluster to /etc/hosts
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: >-
+      {{ '127.0.1.1 ' ~ item if item == inventory_hostname
+      else hostvars[item]['ansible_default_ipv4']['address'] ~ ' ' ~ item }}
+    state: present
+  loop: "{{ groups['controller'] + groups['nodes'] }}"
+  tags: hostname

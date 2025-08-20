@@ -4,3 +4,9 @@
   remote_user: "{{ remote_user }}"
   roles:
     - timedate
+
+- name: Update hostname and populate /etc/hosts
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  roles:
+    - hostname
