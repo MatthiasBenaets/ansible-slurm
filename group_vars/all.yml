@@ -1,2 +1,4 @@
 ---
 # ansible_sudo_pass: secret
+remote_user: matthias
+timezone: Europe/Brussels

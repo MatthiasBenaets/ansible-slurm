@@ -1,0 +1,6 @@
+---
+- name: Set timedate
+  become: true
+  community.general.timezone:
+    name: "{{ timezone }}"
+  tags: timedate
