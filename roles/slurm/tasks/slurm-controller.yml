@@ -10,8 +10,6 @@
   ansible.builtin.command: /usr/sbin/mungekey
   when: not slurm_munge_key.stat.exists
   changed_when: not slurm_munge_key.stat.exists
-
-  notify: Restart slurmctld
   tags: [slurm, slurm-controller]
 
 - name: Set ownership of munge.key
@@ -21,13 +19,7 @@
     owner: munge
     group: munge
   when: not slurm_munge_key.stat.exists
-  notify: Restart slurmctld
   tags: [slurm, slurm-controller]
-
-- name: Set up Slurmdbd
-  ansible.builtin.include_tasks: slurmdbd-controller.yml
-  when: slurm_acct | bool
-  tags: [slurm, slurmdbd-controller]
 
 - name: Copy over slurm.conf
   become: true
@@ -37,7 +29,6 @@
     owner: slurm
     group: slurm
     mode: "644"
-  notify: Restart slurmctld
   tags: [slurm, slurm-controller]
 
 - name: Copy over cgroup.conf
@@ -48,7 +39,6 @@
     owner: slurm
     group: slurm
     mode: "644"
-  notify: Restart slurmctld
   tags: [slurm, slurm-controller]
 
 - name: Create slurm spool directory
@@ -59,7 +49,6 @@
     owner: slurm
     group: slurm
     mode: "755"
-  notify: Restart slurmctld
   tags: [slurm, slurm-controller]
 
 - name: Create slurmctld.log
@@ -70,8 +59,28 @@
     owner: slurm
     group: slurm
     mode: "644"
-  notify: Restart slurmctld
   tags: [slurm, slurm-controller]
+
+- name: Restart munge
+  become: true
+  ansible.builtin.service:
+    name: munge
+    enabled: true
+    state: restarted
+  tags: [slurm, slurm-controller]
+
+- name: Set up Slurmdbd
+  ansible.builtin.include_tasks: slurmdbd-controller.yml
+  when: slurm_acct | bool
+  tags: [slurm, slurmdbd-controller]
+
+- name: Restart slurmctld
+  become: true
+  ansible.builtin.service:
+    name: slurmctld
+    enabled: true
+    state: restarted
+  tags: [slurm, slurm-controller, slurmdbd-controller]
 
 - name: Set up OpenMPI
   ansible.builtin.include_tasks: openmpi.yml

@@ -45,7 +45,6 @@
     priv: "slurm_acct_db.*:ALL,GRANT"
     state: present
     login_unix_socket: /run/mysqld/mysqld.sock
-  notify: Enable Slurmdbd
   tags: [slurm, slurmdbd-controller]
 
 - name: Deploy slurmdbd.conf
@@ -56,7 +55,6 @@
     owner: slurm
     group: slurm
     mode: "0600"
-  notify: Enable Slurmdbd
   tags: [slurm, slurmdbd-controller]
 
 - name: Ensure slurmdbd log file exists and is owned correctly
@@ -67,24 +65,12 @@
     owner: slurm
     group: slurm
     mode: "0644"
-  notify: Enable Slurmdbd
   tags: [slurm, slurmdbd-controller]
 
-- name: Check if Slurm cluster exists
+- name: Enable slurmdbd
   become: true
-  ansible.builtin.command: sacctmgr show cluster
-  register: existing_clusters
-  changed_when: false
-  tags: [slurm, slurmdbd-controller]
-
-- name: Ensure Slurm cluster is registered in accounting database
-  become: true
-  ansible.builtin.command: >
-    sacctmgr -i add cluster {{ slurm_cluster_name }}
-  when: "slurm_cluster_name not in existing_clusters.stdout"
-  register: slurm_add_cluster
-  changed_when: "'Adding Cluster(s)' in slurm_add_cluster.stdout"
-  failed_when:
-    - slurm_add_cluster.rc != 0
-    - "'already exists' not in slurm_add_cluster.stderr"
+  ansible.builtin.service:
+    name: slurmdbd
+    state: started
+    enabled: true
   tags: [slurm, slurmdbd-controller]
