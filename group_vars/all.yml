@@ -21,3 +21,6 @@ ldap_password: secret
 ldap_base_dn: "dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
 ldap_admin_dn: "cn=admin,dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
 ldap_cert_days: 365
+
+# NFS
+shared_dir: /home

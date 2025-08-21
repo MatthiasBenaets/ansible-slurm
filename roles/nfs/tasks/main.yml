@@ -1,0 +1,10 @@
+---
+- name: Set up NFS server for controller
+  ansible.builtin.include_tasks: nfs-controller.yml
+  when: "'controller' in group_names"
+  tags: [nfs, nfs-controller]
+
+- name: Set up NFS client for compute nodes
+  ansible.builtin.include_tasks: nfs-node.yml
+  when: "'nodes' in group_names"
+  tags: [nfs, nfs-node]

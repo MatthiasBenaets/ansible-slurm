@@ -35,3 +35,10 @@
   roles:
     - role: ldap
       when: auth_backend == "ldap"
+
+- name: Set up NFS
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: nfs
+  roles:
+    - nfs

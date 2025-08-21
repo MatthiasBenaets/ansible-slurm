@@ -1,0 +1,7 @@
+---
+- name: Start nfs-kernel-server
+  become: true
+  ansible.builtin.service:
+    name: nfs-kernel-server
+    state: started
+    enabled: true

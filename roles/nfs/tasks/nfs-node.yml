@@ -1,0 +1,24 @@
+- name: Install nfs-common package
+  become: true
+  ansible.builtin.package:
+    name: nfs-common
+    state: present
+  tags: [nfs, nfs-node]
+
+- name: Create NFS directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ shared_dir }}"
+    state: directory
+    mode: "755"
+  tags: [nfs, nfs-node]
+
+- name: Mount the NFS share
+  become: true
+  ansible.posix.mount:
+    src: "{{ groups['controller'][0] }}:{{ shared_dir }}"
+    path: "{{ shared_dir }}"
+    fstype: nfs
+    opts: "defaults,bg,_netdev,noatime,nodiratime,hard,intr"
+    state: mounted
+  tags: [nfs, nfs-node]

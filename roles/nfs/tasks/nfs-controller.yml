@@ -1,0 +1,32 @@
+- name: Install nfs-kernel-server package
+  become: true
+  ansible.builtin.package:
+    name:
+      - nfs-kernel-server
+    state: present
+  tags: [nfs, nfs-controller]
+
+- name: Create NFS directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ shared_dir }}"
+    state: directory
+    mode: "755"
+  tags: [nfs, nfs-controller]
+
+- name: Configure exports file
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    line: "{{ shared_dir }}  *(rw,sync,no_root_squash,no_subtree_check)"
+    regexp: "^{{ shared_dir }}"
+    state: present
+  notify: Start nfs-kernel-server
+  tags: [nfs, nfs-controller]
+
+- name: Export share
+  become: true
+  ansible.builtin.command: exportfs -a
+  changed_when: false
+  notify: Start nfs-kernel-server
+  tags: [nfs, nfs-controller]
