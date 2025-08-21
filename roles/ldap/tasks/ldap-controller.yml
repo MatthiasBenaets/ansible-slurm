@@ -1,0 +1,114 @@
+---
+- name: Ensure OpenLDAP URL can be resolved
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '.*ldap\.{{ ldap_domain }}'
+    line: "127.0.0.1 ldap.{{ ldap_domain }}"
+    state: present
+  tags: [ldap, ldap-controller]
+
+- name: Install required packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - slapd
+      - ldap-utils
+      - libpam-mkhomedir
+      - libnss-ldapd
+      - openssl
+    state: present
+  tags: [ldap, ldap-controller]
+
+- name: Ensure PAM home dir creation enabled
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session
+    line: "session required pam_mkhomedir.so skel=/etc/skel/ umask=0077"
+    state: present
+  tags: [ldap, ldap-controller]
+
+- name: Create TLS cert dir
+  become: true
+  ansible.builtin.file:
+    path: /etc/ldap/ssl
+    state: directory
+    owner: openldap
+    mode: "755"
+  tags: [ldap, ldap-controller]
+
+- name: Generate private key
+  become: true
+  community.crypto.openssl_privatekey:
+    path: /etc/ldap/ssl/slapdkey.pem
+    owner: openldap
+    mode: "400"
+  tags: [ldap, ldap-controller]
+
+- name: Generate CSR
+  become: true
+  community.crypto.openssl_csr:
+    path: /etc/ldap/ssl/slapd.csr
+    privatekey_path: /etc/ldap/ssl/slapdkey.pem
+    common_name: "{{ ldap_domain }}"
+    owner: openldap
+  tags: [ldap, ldap-controller]
+
+- name: Generate self-signed cert with CSR
+  become: true
+  community.crypto.x509_certificate:
+    path: /etc/ldap/ssl/slapdcert.pem
+    csr_path: /etc/ldap/ssl/slapd.csr
+    privatekey_path: /etc/ldap/ssl/slapdkey.pem
+    provider: selfsigned
+    selfsigned_not_after: "+{{ ldap_cert_days }}d"
+    owner: openldap
+    mode: "444"
+  tags: [ldap, ldap-controller]
+
+- name: Configure slapd TLS
+  become: true
+  ansible.builtin.shell: |
+    ldapmodify -Y EXTERNAL -H ldapi:/// <<EOF
+    dn: cn=config
+    changetype: modify
+    replace: olcTLSCertificateFile
+    olcTLSCertificateFile: /etc/ldap/ssl/slapdcert.pem
+    -
+    replace: olcTLSCertificateKeyFile
+    olcTLSCertificateKeyFile: /etc/ldap/ssl/slapdkey.pem
+    EOF
+  args:
+    creates: /etc/ldap/ssl/.tls_configured
+  tags: [ldap, ldap-controller]
+
+- name: Configure ldap.conf
+  become: true
+  ansible.builtin.template:
+    src: ldap.conf.j2
+    dest: /etc/ldap/ldap.conf
+    mode: "644"
+  notify: Restart nslcd
+  tags: [ldap, ldap-controller]
+
+- name: Configure nsswitch.conf
+  become: true
+  ansible.builtin.template:
+    src: nsswitch.conf.j2
+    dest: /etc/nsswitch.conf
+    mode: "644"
+  notify: Restart nslcd
+  tags: [ldap, ldap-controller]
+
+- name: Configure nslcd.conf
+  become: true
+  ansible.builtin.template:
+    src: nslcd.conf.j2
+    dest: /etc/nslcd.conf
+    mode: "644"
+  notify: Restart nslcd
+  tags: [ldap, ldap-controller]
+
+- name: Set up phpLDAPadmin
+  ansible.builtin.include_tasks: phpldapadmin.yml
+  tags: [ldap, phpldapadmin]

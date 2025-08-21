@@ -1,0 +1,16 @@
+---
+- name: Install required packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - phpldapadmin
+    state: present
+  tags: [ldap, phpldapadmin]
+
+- name: Configure phpLDAPadmin
+  become: true
+  ansible.builtin.template:
+    src: phpldapadmin-config.php.j2
+    dest: /etc/phpldapadmin/config.php
+    mode: "644"
+  tags: [ldap, phpldapadmin]

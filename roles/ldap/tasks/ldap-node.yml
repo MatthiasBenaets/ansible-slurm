@@ -1,0 +1,54 @@
+---
+- name: Gather facts for controller group
+  ansible.builtin.setup:
+    filter: ansible_default_ipv4
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['controller'] | default([]) }}"
+  run_once: true
+  tags: [ldap, ldap-node]
+
+- name: Ensure OpenLDAP URL can be resolved
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '.*ldap\.{{ ldap_domain }}'
+    line: "{{ hostvars[groups['controller'][0]]['ansible_default_ipv4']['address'] }} ldap.{{ ldap_domain }}"
+    state: present
+  tags: [ldap, ldap-node]
+
+- name: Install OpenLDAP dependencies
+  become: true
+  ansible.builtin.package:
+    name:
+      - ldap-utils
+      - libpam-mkhomedir
+      - libnss-ldapd
+    state: present
+  tags: [ldap, ldap-node]
+
+- name: Ensure PAM home dir creation enabled
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session
+    line: "session required pam_mkhomedir.so skel=/etc/skel/ umask=0077"
+    state: present
+  tags: [ldap, ldap-node]
+
+- name: Configure nsswitch.conf
+  become: true
+  ansible.builtin.template:
+    src: nsswitch.conf.j2
+    dest: /etc/nsswitch.conf
+    mode: "644"
+  notify: Restart nslcd
+  tags: [ldap, ldap-node]
+
+- name: Configure nslcd.conf
+  become: true
+  ansible.builtin.template:
+    src: nslcd.conf.j2
+    dest: /etc/nslcd.conf
+    mode: "644"
+  notify: Restart nslcd
+  tags: [ldap, ldap-node]

@@ -27,3 +27,11 @@
   roles:
     - role: ad
       when: auth_backend == "ad"
+
+- name: Set up LDAP
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: ldap
+  roles:
+    - role: ldap
+      when: auth_backend == "ldap"
