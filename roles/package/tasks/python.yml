@@ -1,0 +1,98 @@
+---
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: [package, python]
+
+- name: Install build dependencies for Python
+  become: true
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - pkg-config
+      - libffi-dev
+      - libssl-dev
+      - libsqlite3-dev
+      - libgdbm-dev
+      - libgdbm-compat-dev
+      - libnsl-dev
+      - libncurses5-dev
+      - libreadline-dev
+      - liblzma-dev
+      - libbz2-dev
+      - tcl-dev
+      - tk-dev
+      - uuid-dev
+    state: present
+  tags: [package, python]
+
+- name: Download Python source tarball
+  become: true
+  ansible.builtin.get_url:
+    url: "https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tgz"
+    dest: "/tmp/Python-{{ python_version }}.tgz"
+    mode: "644"
+  tags: [package, python]
+
+- name: Extract Python source tarball
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/Python-{{ python_version }}.tgz"
+    dest: "/tmp"
+    remote_src: true
+  tags: [package, python]
+
+- name: Configure Python installation
+  become: true
+  ansible.builtin.command:
+    cmd: "./configure --prefix={{ python_install_path }} --with-pydebug --enable-optimizations"
+    chdir: "{{ python_src_dir }}"
+  changed_when: false
+  tags: [package, python]
+
+- name: Compile Python
+  become: true
+  community.general.make:
+    chdir: "{{ python_src_dir }}"
+  tags: [package, python]
+
+- name: Install Python
+  become: true
+  community.general.make:
+    target: install
+    chdir: "{{ python_src_dir }}"
+  tags: [package, python]
+
+- name: Create /opt/modulefiles/python directory for Lua modules
+  become: true
+  ansible.builtin.file:
+    path: /opt/modulefiles/python
+    state: directory
+    owner: root
+    group: root
+    mode: "755"
+  tags: [package, python]
+
+- name: Create the Lua module file
+  become: true
+  ansible.builtin.copy:
+    dest: "/opt/modulefiles/python/{{ python_version }}.lua"
+    content: |
+      whatis("Description: python version {{ python_version }}")
+
+      -- Add the Python binary to the user's PATH
+      prepend_path("PATH", "/opt/apps/python/{{ python_version }}/bin")
+
+      -- Set pip package location
+      local home = os.getenv("HOME")
+      setenv("PIP_TARGET", pathJoin(home, "python/{{ python_version }}/packages"))
+
+      -- Create aliases
+      set_alias("python", "/opt/apps/python/{{ python_version }}/bin/python3")
+      set_alias("pip", "/opt/apps/python/{{ python_version }}/bin/pip3")
+    owner: root
+    group: root
+    mode: "644"
+  tags: [package, python]
