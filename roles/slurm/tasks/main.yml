@@ -1,0 +1,21 @@
+---
+- name: Install Slurm
+  become: true
+  ansible.builtin.package:
+    name:
+      - munge
+      - libmunge2
+      - libmunge-dev
+      - slurm-wlm
+      - libslurm-dev
+    state: present
+
+- name: Set up slurmctld for controller
+  ansible.builtin.include_tasks: slurm-controller.yml
+  when: "'controller' in group_names"
+  tags: [slurm, slurm-controller, openmpi]
+
+- name: Set up slurmd for compute node
+  ansible.builtin.include_tasks: slurm-node.yml
+  when: "'nodes' in group_names"
+  tags: [slurm, slurm-node, openmpi]

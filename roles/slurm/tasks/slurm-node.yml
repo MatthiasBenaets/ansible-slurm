@@ -1,0 +1,56 @@
+---
+- name: Fetch munge.key from controller
+  become: true
+  delegate_to: "{{ groups['controller'][0] }}"
+  ansible.builtin.slurp:
+    src: /etc/munge/munge.key
+  register: slurm_munge_key_encoded
+  tags: [slurm, slurm-node]
+
+- name: Copy munge.key to worker nodes
+  become: true
+  ansible.builtin.copy:
+    content: "{{ slurm_munge_key_encoded.content | b64decode }}"
+    dest: /etc/munge/munge.key
+    owner: munge
+    group: munge
+    mode: "600"
+  notify: Restart slurmd
+  tags: [slurm, slurm-node]
+
+- name: Copy over slurm.conf
+  become: true
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    owner: slurm
+    group: slurm
+    mode: "644"
+  notify: Restart slurmd
+  tags: [slurm, slurm-node]
+
+- name: Copy over cgroup.conf
+  become: true
+  ansible.builtin.template:
+    src: cgroup.conf.j2
+    dest: /etc/slurm/cgroup.conf
+    owner: slurm
+    group: slurm
+    mode: "644"
+  notify: Restart slurmd
+  tags: [slurm, slurm-node]
+
+- name: Create slurm spool directory
+  become: true
+  ansible.builtin.file:
+    path: /var/spool/slurm
+    state: directory
+    owner: slurm
+    group: slurm
+    mode: "755"
+  notify: Restart slurmd
+  tags: [slurm, slurm-node]
+
+- name: Set up OpenMPI
+  ansible.builtin.include_tasks: openmpi.yml
+  tags: [slurm, openmpi]

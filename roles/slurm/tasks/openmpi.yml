@@ -1,0 +1,11 @@
+---
+- name: Install OpenMPI
+  become: true
+  ansible.builtin.package:
+    name:
+      - openmpi-bin
+      - openmpi-common
+      - libopenmpi3
+      - libopenmpi-dev
+    state: present
+  tags: [slurm, openmpi]

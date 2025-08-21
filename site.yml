@@ -49,3 +49,10 @@
   tags: lmod
   roles:
     - lmod
+
+- name: Set up Slurm
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: slurm
+  roles:
+    - slurm
