@@ -1,0 +1,118 @@
+---
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: [package, r]
+
+- name: Install build dependencies for R
+  become: true
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - g++
+      - libreadline-dev
+      - libbz2-dev
+      - liblzma-dev
+      - libpcre2-dev
+      - libcurl4-openssl-dev
+      - default-jdk
+      - zlib1g-dev
+    state: present
+  tags: [package, r]
+
+- name: Download R source tarball
+  become: true
+  ansible.builtin.get_url:
+    url: "https://cran.rstudio.com/src/base/R-{{ r_version.split('.')[0] }}/R-{{ r_version }}.tar.gz"
+    dest: "/tmp/R-{{ r_version }}.tar.gz"
+    mode: "644"
+  tags: [package, r]
+
+- name: Extract R source tarball
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/R-{{ r_version }}.tar.gz"
+    dest: "/tmp"
+    remote_src: true
+  tags: [package, r]
+
+- name: Configure R installation
+  become: true
+  ansible.builtin.command:
+    cmd: "./configure --prefix={{ r_install_path }} --enable-R-shlib --enable-memory-profiling --with-blas --with-lapack --with-x=no"
+    chdir: "{{ r_src_dir }}"
+  changed_when: false
+  tags: [package, r]
+
+- name: Compile R
+  become: true
+  community.general.make:
+    chdir: "{{ r_src_dir }}"
+  tags: [package, r]
+
+- name: Install R
+  become: true
+  community.general.make:
+    target: install
+    chdir: "{{ r_src_dir }}"
+  tags: [package, r]
+
+- name: Create /opt/modulefiles/R directory for Lua modules
+  become: true
+  ansible.builtin.file:
+    path: /opt/modulefiles/R
+    state: directory
+    owner: root
+    group: root
+    mode: "755"
+  tags: [package, r]
+
+- name: Create the Lua module file
+  become: true
+  ansible.builtin.copy:
+    dest: "/opt/modulefiles/R/{{ r_version }}.lua"
+    content: |
+      whatis("Description: R programming language version {{ r_version }}")
+
+      local home = os.getenv("HOME")
+
+      -- Set the R_HOME and R_LIBS_USER environment variables
+      setenv("R_HOME", "/opt/apps/R/{{ r_version }}/lib/R")
+      setenv("R_LIBS_USER", pathJoin(home, "R/{{ r_version }}/library"))
+
+      -- Add the R binary to the user's PATH
+      prepend_path("PATH", "/opt/apps/R/{{ r_version }}/bin")
+    owner: "root"
+    group: "root"
+    mode: "644"
+  tags: [package, r]
+
+- name: Create .Rprofile for default CRAN mirror and user packages
+  become: true
+  ansible.builtin.copy:
+    dest: "/opt/apps/R/{{ r_version }}/lib/R/etc/Rprofile.site"
+    content: |
+      options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+      if (Sys.info()["user"] != "root") {
+        user_library_path <- file.path(Sys.getenv("HOME"), "R", paste(version[c("major", "minor")], collapse = "."), "library")
+        if (!dir.exists(user_library_path)) {
+            dir.create(user_library_path, recursive = TRUE)
+        }
+        .libPaths(c(user_library_path, .libPaths()))
+      }
+    owner: "root"
+    group: "root"
+    mode: "644"
+  tags: [package, r]
+
+- name: Install R packages
+  become: true
+  ansible.builtin.shell: >
+    /opt/apps/R/{{ r_version }}/bin/R
+    -e 'install.packages(c("parallel","doParallel","foreach","future","future.batchtools","future.apply","batchtools","snow","Rmpi","rslurm","slurmR"),
+    configure.args = c("--with-Rmpi-type=OPENMPI"))'
+  changed_when: false
+  tags: [package, r]

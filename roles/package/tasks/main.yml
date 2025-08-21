@@ -1,0 +1,4 @@
+---
+- name: R
+  ansible.builtin.include_tasks: r.yml
+  tags: [package, r]

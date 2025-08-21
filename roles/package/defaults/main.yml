@@ -1,0 +1,4 @@
+---
+r_version: "4.5.1"
+r_install_path: "/opt/apps/R/{{ r_version }}"
+r_src_dir: "/tmp/R-{{ r_version }}"

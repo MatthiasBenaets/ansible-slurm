@@ -56,3 +56,10 @@
   tags: slurm
   roles:
     - slurm
+
+- name: Install cluster packages
+  hosts: controller
+  remote_user: "{{ remote_user }}"
+  tags: package
+  roles:
+    - package
