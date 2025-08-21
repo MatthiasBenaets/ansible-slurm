@@ -42,3 +42,10 @@
   tags: nfs
   roles:
     - nfs
+
+- name: Set up Lmod
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: lmod
+  roles:
+    - lmod

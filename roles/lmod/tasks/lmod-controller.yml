@@ -1,0 +1,29 @@
+---
+- name: Create directory for applications
+  become: true
+  ansible.builtin.file:
+    path: "{{ shared_app }}"
+    state: directory
+    mode: "755"
+  tags: [lmod, lmod-controller]
+
+- name: Update lmod to point to modules
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/lmod.sh
+    line: "export MODULEPATH={{ module_path }}:$MODULEPATH"
+  tags: [lmod, lmod-controller]
+
+- name: Configure exports file
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    line: "{{ shared_app }}  *(ro,sync,no_root_squash,no_subtree_check)"
+    state: present
+  tags: [lmod, lmod-controller]
+
+- name: Export application share
+  become: true
+  ansible.builtin.command: exportfs -a
+  changed_when: false
+  tags: [lmod, lmod-controller]

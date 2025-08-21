@@ -1,0 +1,16 @@
+---
+- name: Install lmod package
+  become: true
+  ansible.builtin.package:
+    name: lmod
+  tags: [lmod]
+
+- name: Set up Lmod for controller
+  ansible.builtin.include_tasks: lmod-controller.yml
+  when: "'controller' in group_names"
+  tags: [lmod, lmod-controller]
+
+- name: Set up Lmod for compute nodes
+  ansible.builtin.include_tasks: lmod-node.yml
+  when: "'nodes' in group_names"
+  tags: [lmod, lmod-node]

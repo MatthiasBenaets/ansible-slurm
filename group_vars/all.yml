@@ -24,3 +24,7 @@ ldap_cert_days: 365
 
 # NFS
 shared_dir: /home
+
+# LMOD
+shared_app: /opt
+module_path: /opt/modulefiles
