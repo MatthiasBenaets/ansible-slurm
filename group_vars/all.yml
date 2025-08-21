@@ -12,7 +12,7 @@ auth_backend: ldap # ad/ldap/local
 ad_user: Administrator
 ad_password: secret
 ad_domain: "ad.{{domain_name}}"
-ad_rdns: true
+ad_rdns: true # enable if reverse dns lookup is enabled
 
 # LDAP
 ldap_domain: "{{ domain_name }}"
@@ -30,7 +30,12 @@ shared_app: /opt
 module_path: /opt/modulefiles
 
 # SLURM
-cluster_name: cluster
+slurm_cluster_name: cluster
 slurm_compute_nodes:
   - NodeName=node[1-2] CPUs=2 RealMemory=1900 Sockets=1 CoresPerSocket=2 ThreadsPerCore=1 State=UNKNOWN
   - PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP
+
+# SLURMDBD
+slurm_acct: true # enable if you want accounting
+mysql_password: secret
+slurmdb_password: secret

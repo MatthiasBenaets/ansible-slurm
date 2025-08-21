@@ -24,6 +24,11 @@
   notify: Restart slurmctld
   tags: [slurm, slurm-controller]
 
+- name: Set up Slurmdbd
+  ansible.builtin.include_tasks: slurmdbd-controller.yml
+  when: slurm_acct | bool
+  tags: [slurm, slurmdbd-controller]
+
 - name: Copy over slurm.conf
   become: true
   ansible.builtin.template:

@@ -18,3 +18,17 @@
   loop:
     - munge
     - slurmd
+
+- name: Start MariaDB
+  become: true
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: true
+
+- name: Enable Slurmdbd
+  become: true
+  ansible.builtin.service:
+    name: slurmdbd
+    state: started
+    enabled: true

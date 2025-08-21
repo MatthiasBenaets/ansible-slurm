@@ -1,0 +1,90 @@
+---
+- name: Install Slurmdbd and MariaDB server
+  become: true
+  ansible.builtin.package:
+    name:
+      - slurmdbd
+      - mariadb-server
+      - python3-pymysql
+    state: present
+  notify: Start MariaDB
+  tags: [slurm, slurmdbd-controller]
+
+- name: Secure MariaDB installation
+  become: true
+  ansible.builtin.expect:
+    command: mysql_secure_installation
+    responses:
+      "Enter current password for root*": "{{ mysql_password }}"
+      "Switch to unix_socket authentication*": "n"
+      "Change the root password*": "n"
+      "Remove anonymous users*": "y"
+      "Disallow root login remotely*": "y"
+      "Remove test database*": "y"
+      "Reload privilege tables now*": "y"
+    timeout: 1
+  register: slurm_secure_mariadb
+  failed_when: "'... Failed!' in slurm_secure_mariadb.stdout_lines"
+  ignore_errors: true
+  tags: [slurm, slurmdbd-controller]
+
+- name: Create Slurm accounting database
+  become: true
+  community.mysql.mysql_db:
+    name: slurm_acct_db
+    state: present
+    login_unix_socket: /run/mysqld/mysqld.sock
+  tags: [slurm, slurmdbd-controller]
+
+- name: Create slurm user in MySQL
+  become: true
+  community.mysql.mysql_user:
+    name: slurm
+    host: localhost
+    password: "{{ slurmdb_password }}"
+    priv: "slurm_acct_db.*:ALL,GRANT"
+    state: present
+    login_unix_socket: /run/mysqld/mysqld.sock
+  notify: Enable Slurmdbd
+  tags: [slurm, slurmdbd-controller]
+
+- name: Deploy slurmdbd.conf
+  become: true
+  ansible.builtin.template:
+    src: slurmdbd.conf.j2
+    dest: /etc/slurm/slurmdbd.conf
+    owner: slurm
+    group: slurm
+    mode: "0600"
+  notify: Enable Slurmdbd
+  tags: [slurm, slurmdbd-controller]
+
+- name: Ensure slurmdbd log file exists and is owned correctly
+  become: true
+  ansible.builtin.file:
+    path: /var/log/slurmdbd.log
+    state: touch
+    owner: slurm
+    group: slurm
+    mode: "0644"
+  notify: Enable Slurmdbd
+  tags: [slurm, slurmdbd-controller]
+
+- name: Check if Slurm cluster exists
+  become: true
+  ansible.builtin.command: sacctmgr show cluster
+  register: existing_clusters
+  changed_when: false
+  tags: [slurm, slurmdbd-controller]
+
+- name: Ensure Slurm cluster is registered in accounting database
+  become: true
+  ansible.builtin.command: >
+    sacctmgr -i add cluster {{ slurm_cluster_name }}
+  when: "slurm_cluster_name not in existing_clusters.stdout"
+  register: slurm_add_cluster
+  changed_when: "'Adding Cluster(s)' in slurm_add_cluster.stdout"
+  failed_when:
+    - slurm_add_cluster.rc != 0
+    - "'already exists' not in slurm_add_cluster.stderr"
+  tags: [slurm, slurmdbd-controller]

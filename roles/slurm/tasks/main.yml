@@ -13,7 +13,7 @@
 - name: Set up slurmctld for controller
   ansible.builtin.include_tasks: slurm-controller.yml
   when: "'controller' in group_names"
-  tags: [slurm, slurm-controller, openmpi]
+  tags: [slurm, slurm-controller, slurmdbd-controller, openmpi]
 
 - name: Set up slurmd for compute node
   ansible.builtin.include_tasks: slurm-node.yml

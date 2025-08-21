@@ -2,7 +2,7 @@
 # Put this file on all nodes of your cluster.
 # See the slurm.conf man page for more information.
 #
-ClusterName={{ cluster_name }}
+ClusterName={{ slurm_cluster_name }}
 SlurmctldHost={{ groups["controller"][0]  }}
 #SlurmctldHost= #
 #
@@ -110,9 +110,16 @@ SelectType=select/cons_tres
 #
 # LOGGING AND ACCOUNTING
 #AccountingStorageEnforce=0
+{% if slurm_acct %}
+AccountingStorageHost=localhost
+AccountingStoragePort=6819
+AccountingStorageType=accounting_storage/slurmdbd
+{% else %}
 #AccountingStorageHost=
 #AccountingStoragePass=
 #AccountingStoragePort=
+{% endif %}
+#AccountingStoragePass=
 #AccountingStorageType=
 #AccountingStorageUser=
 #AccountingStoreFlags=
