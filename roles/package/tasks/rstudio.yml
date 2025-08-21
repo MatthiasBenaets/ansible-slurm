@@ -1,0 +1,71 @@
+---
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: [package, rstudio]
+
+- name: Install gdebi and dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - gdebi
+      - zip
+    state: present
+  tags: [package, rstudio]
+
+- name: Get Rsudio Server
+  become: true
+  ansible.builtin.get_url:
+    url: "https://download2.rstudio.org/server/{{ rstudio_os_release }}/amd64/rstudio-server-{{ rstudio_version }}-amd64.deb"
+    dest: "/tmp/rstudio.deb"
+    mode: "644"
+  tags: [package, rstudio]
+
+- name: Install RStudio Server
+  become: true
+  ansible.builtin.command: /usr/bin/gdebi --non-interactive /tmp/rstudio.deb
+  changed_when: false
+  tags: [package, rstudio]
+
+- name: Get list of installed R versions
+  ansible.builtin.find:
+    paths: /opt/apps/R/
+    file_type: directory
+  register: r_versions
+  tags: [package, rstudio]
+
+- name: Debug found directories
+  ansible.builtin.debug:
+    var: r_versions.files | map(attribute='path') | list
+  tags: [package, rstudio]
+
+- name: Set full R binary path
+  ansible.builtin.set_fact:
+    r_binary_path: >-
+      /opt/apps/R/{{ (r_versions.files
+      | map(attribute='path')
+      | map('basename')
+      | select('match', '^[0-9]+\.[0-9]+\.[0-9]+$')
+      | sort
+      | last) }}/bin/R
+  tags: [package, rstudio]
+
+- name: Add R binary path to rserver.conf
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/rstudio/rserver.conf
+    line: "rsession-which-r={{ r_binary_path }}"
+    create: true
+    mode: "644"
+    state: present
+    insertafter: EOF
+  tags: [package, rstudio]
+
+- name: Start RStudio server
+  become: true
+  ansible.builtin.service:
+    name: rstudio-server
+    state: started
+  tags: [package, rstudio]

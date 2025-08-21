@@ -2,3 +2,7 @@
 - name: R
   ansible.builtin.include_tasks: r.yml
   tags: [package, r]
+
+- name: RStudio
+  ansible.builtin.include_tasks: rstudio.yml
+  tags: [package, rstudio]
