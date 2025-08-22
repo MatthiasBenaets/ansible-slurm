@@ -68,4 +68,6 @@
   ansible.builtin.service:
     name: rstudio-server
     state: started
+  retries: 3
+  delay: 10
   tags: [package, rstudio]
