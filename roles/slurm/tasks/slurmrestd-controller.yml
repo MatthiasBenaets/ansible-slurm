@@ -1,0 +1,90 @@
+---
+- name: Install required slurmrestd packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - slurmrestd
+      - slurm-client
+      - libyaml-dev
+    state: present
+  tags: [slurm, slurmrestd-controller]
+
+- name: Create Slurmrestd user and group
+  become: true
+  ansible.builtin.command: useradd -M -r -s /usr/sbin/nologin -U slurmrestd
+  args:
+    creates: /etc/passwd/slurmrestd
+  register: useradd_result
+  changed_when: useradd_result.rc == 0
+  tags: [slurm, slurmrestd-controller]
+
+- name: Create Slurm statesave directory
+  become: true
+  ansible.builtin.file:
+    path: /var/spool/slurm/statesave
+    state: directory
+    owner: slurm
+    group: slurm
+    mode: "755"
+  tags: [slurm, slurmrestd-controller]
+
+- name: Generate JWT key
+  become: true
+  ansible.builtin.command: dd if=/dev/random of=/var/spool/slurm/statesave/jwt_hs256.key bs=32 count=1
+  args:
+    creates: /var/spool/slurm/statesave/jwt_hs256.key
+  tags: [slurm, slurmrestd-controller]
+
+- name: Set JWT key permissions
+  become: true
+  ansible.builtin.file:
+    path: /var/spool/slurm/statesave/jwt_hs256.key
+    owner: slurm
+    group: slurm
+    mode: "600"
+  tags: [slurm, slurmrestd-controller]
+
+- name: Restart Slurm services
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - slurmctld
+    - slurmdbd
+  tags: [slurm, slurmrestd-controller]
+
+- name: Create slurmrestd systemd override
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/system/slurmrestd.service.d
+    state: directory
+    mode: "755"
+  tags: [slurm, slurmrestd-controller]
+
+- name: Configure slurmrestd service
+  become: true
+  ansible.builtin.copy:
+    content: |
+      [Service]
+        User=slurmrestd
+        Group=slurmrestd
+      ExecStart=
+      ExecStart=/usr/sbin/slurmrestd $SLURMRESTD_OPTIONS 0.0.0.0:6820
+    dest: /etc/systemd/system/slurmrestd.service.d/override.conf
+    mode: "644"
+  tags: [slurm, slurmrestd-controller]
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+  tags: [slurm, slurmrestd-controller]
+
+- name: Enable and start slurmrestd
+  become: true
+  ansible.builtin.systemd:
+    name: slurmrestd
+    enabled: true
+    state: started
+  tags: [slurm, slurmrestd-controller]

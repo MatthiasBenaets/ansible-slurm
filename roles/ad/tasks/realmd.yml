@@ -1,13 +1,12 @@
 ---
 - name: Install Realmd dependencies
   become: true
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name:
       - realmd
       - samba-common-bin
       - adcli
     state: present
-    update_cache: true
   tags: [ad, realmd]
 
 - name: Preconfigure some krb5.conf settings

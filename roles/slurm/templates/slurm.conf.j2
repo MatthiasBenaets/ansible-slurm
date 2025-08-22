@@ -154,6 +154,11 @@ SlurmdLogFile=/var/log/slurmd.log
 #SuspendRate=
 #SuspendTime=
 #
+{% if slurm_acct %}
+# API
+AuthAltTypes=auth/jwt
+AuthAltParameters=jwt_key=/var/spool/slurm/statesave/jwt_hs256.key
+{% endif %}
 #
 # COMPUTE NODES
 {% for line in slurm_compute_nodes %}

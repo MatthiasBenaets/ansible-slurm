@@ -24,3 +24,7 @@ PurgeStepAfter=1month
 PurgeSuspendAfter=1month
 PurgeTXNAfter=12month
 PurgeUsageAfter=24month
+{% if slurm_acct %}
+AuthAltTypes=auth/jwt
+AuthAltParameters=jwt_key=/var/spool/slurm/statesave/jwt_hs256.key
+{% endif %}

@@ -8,7 +8,8 @@ ansible-playbook \
 site.yml
 ```
 
-To run only specific parts of the playbook, add `--tags="<space-separated-tags>"` parameter.
+To run only specific parts of the playbook, add `--tags="<space-separated-tags>"` parameter.\
+For packages `--tags="common, package_name"`
 
 Lint checking (with Homebrew):\
 It's required to install ansible-galaxy collections forcefully, so that ansible-lint can find them with homebrew.\

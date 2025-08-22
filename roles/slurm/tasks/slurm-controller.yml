@@ -74,6 +74,11 @@
   when: slurm_acct | bool
   tags: [slurm, slurmdbd-controller]
 
+- name: Set up Slurmrestd
+  ansible.builtin.include_tasks: slurmrestd-controller.yml
+  when: slurm_restapi | bool
+  tags: [slurm, slurmrestd-controller]
+
 - name: Restart slurmctld
   become: true
   ansible.builtin.service:

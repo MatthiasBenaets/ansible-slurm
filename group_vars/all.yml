@@ -38,3 +38,6 @@ slurm_compute_nodes:
 slurm_acct: true # enable if you want accounting
 mysql_password: secret
 slurmdb_password: secret
+
+# SLURMRESTD
+slurm_restapi: true #enable if you want rest api
