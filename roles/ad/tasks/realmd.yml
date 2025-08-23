@@ -31,7 +31,7 @@
     owner: root
     group: root
     mode: "644"
-  when: ad_rdns == "false"
+  when: not ad_rdns | bool
   tags: [ad, realmd]
 
 - name: Check realm status
