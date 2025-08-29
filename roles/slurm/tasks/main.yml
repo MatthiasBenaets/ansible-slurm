@@ -20,6 +20,7 @@
       slurmdbd-controller,
       slurmrestd-controller,
       openmpi,
+      motd,
     ]
 
 - name: Set up slurmd for compute node

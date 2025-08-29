@@ -1,0 +1,10 @@
+---
+- name: Create custom /etc/motd login message
+  become: true
+  ansible.builtin.template:
+    src: 90-slurm-info.j2
+    dest: /etc/update-motd.d/90-slurm-info
+    owner: root
+    group: root
+    mode: "755"
+  tags: [slurm, motd]

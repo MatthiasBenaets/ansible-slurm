@@ -1,0 +1,39 @@
+#!/bin/bash -l
+echo "------------------------------------------------------------"
+echo "  ██████╗██╗     ██╗   ██╗███████╗████████╗███████╗██████╗ "
+echo " ██╔════╝██║     ██║   ██║██╔════╝╚══██╔══╝██╔════╝██╔══██╗"
+echo " ██║     ██║     ██║   ██║███████╗   ██║   █████╗  ██████╔╝"
+echo " ██║     ██║     ██║   ██║╚════██║   ██║   ██╔══╝  ██╔══██╗"
+echo " ╚██████╗███████╗╚██████╔╝███████║   ██║   ███████╗██║  ██║"
+echo "  ╚═════╝╚══════╝ ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝"
+echo "------------------------------------------------------------"
+echo "               === Cluster Usage Overview ===               "
+total_nodes=$(sinfo -h -o "%D" | awk '{sum+=$1} END {print sum}')
+idle_nodes=$(sinfo -h -t idle -o "%D" | awk '{sum+=$1} END {print sum}')
+alloc_nodes=$(sinfo -h -t alloc -o "%D" | awk '{sum+=$1} END {print sum}')
+down_nodes=$(sinfo -h -t down -o "%D" | awk '{sum+=$1} END {print sum}')
+idle_pct=$((idle_nodes * 100 / total_nodes))
+alloc_pct=$((alloc_nodes * 100 / total_nodes))
+down_pct=$((down_nodes * 100 / total_nodes))
+echo "Total Nodes: $total_nodes"
+echo "Idle: $idle_nodes ($idle_pct%) | Allocated: $alloc_nodes ($alloc_pct%) | Down: $down_nodes ($down_pct%)"
+bar_width=57
+idle_bar=$(printf '\033[0;32m▒%.0s\033[0m' $(seq 1 $((idle_pct * bar_width / 100))))
+alloc_bar=$(printf '\033[0;33m▒%.0s\033[0m' $(seq 1 $((alloc_pct * bar_width / 100))))
+down_bar=$(printf '\033[0;31m▒%.0s\033[0m' $(seq 1 $((down_pct * bar_width / 100))))
+echo -e "[${idle_bar}${alloc_bar}${down_bar}]"
+echo ""
+echo "               ===      Node Details      ===               "
+#printf "%-9s %-8s %6s %8s %10s %s\n" "Partition" "Node" "CPUs" "RAM(MB)" "GPUs" "Reason"
+#sinfo -h -o "%9P %8n %6c %8m %10G %E"
+#printf "%-9s %-8s %4s %8s %4s %s\n" "Partition" "Node" "CPUs" "RAM(MB)" "GPUs" "Reason"
+#sinfo -h -o "%9P %8n %4c %8m %4G %E"
+#printf "%-12s %-12s %8s %12s %8s %s\n" "Partition" "Node" "CPUs" "RAM(MB)" "GPUs" "Reason"
+#sinfo -h -o "%12P %12n %8c %12m %8G %E"
+printf "%-12s %-10s %-6s %-10s %-6s %s\n" "Partition" "Node" "CPUs" "RAM(MB)" "GPUs" "Reason"
+sinfo -h -o "%12P %10n %6c %10m %6G %E"
+echo ""
+echo "               ===    Available Modules   ===               "
+echo "Info: use 'module load <module>' to load a module."
+MODULEPATH=/opt/modulefiles module --terse avail 2>&1 | grep -v "/opt/modulefiles:"
+echo "------------------------------------------------------------"
