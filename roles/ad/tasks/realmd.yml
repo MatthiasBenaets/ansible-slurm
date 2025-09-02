@@ -6,6 +6,11 @@
       - realmd
       - samba-common-bin
       - adcli
+      - sssd
+      - sssd-tools
+      - libnss-sss
+      - libpam-sss
+      - samba-common-bin
     state: present
   tags: [ad, realmd]
 
