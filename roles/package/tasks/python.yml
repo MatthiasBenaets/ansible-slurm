@@ -40,7 +40,7 @@
 - name: Configure Python installation
   become: true
   ansible.builtin.command:
-    cmd: "./configure --prefix={{ python_install_path }} --with-pydebug --enable-optimizations"
+    cmd: "./configure --prefix={{ python_install_path }} --with-pydebug --enable-optimizations --with-lto --with-ensurepip=install --enable-loadable-sqlite-extensions"
     chdir: "{{ python_src_dir }}"
   changed_when: false
   tags: [package, python]
@@ -81,6 +81,8 @@
       -- Set pip package location
       local home = os.getenv("HOME")
       setenv("PIP_TARGET", pathJoin(home, "python/{{ python_version }}/packages"))
+      prepend_path("PYTHONPATH", pathJoin(home, "python/3.12.0/packages"))
+      prepend_path("PATH", pathJoin(home, "python/3.12.0/packages/bin"))
 
       -- Create aliases
       set_alias("python", "/opt/apps/python/{{ python_version }}/bin/python3")
