@@ -9,3 +9,5 @@ rstudio_version: "2025.05.1-513"
 python_version: "3.12.0"
 python_install_path: "/opt/apps/python/{{ python_version }}"
 python_src_dir: "/tmp/Python-{{ python_version }}"
+
+jupyterhub_install_path: "/opt/apps/jupyterhub"

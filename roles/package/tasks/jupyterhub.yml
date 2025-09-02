@@ -1,0 +1,147 @@
+---
+- name: Install Jupyterhub prerequisite packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - python3-venv
+      - nodejs
+      - npm
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+  tags: [package, jupyterhub]
+
+- name: Create JupyterHub virtual environment
+  become: true
+  ansible.builtin.command: "python3 -m venv {{ jupyterhub_install_path }}"
+  args:
+    creates: "{{ jupyterhub_install_path }}"
+  tags: [package, jupyterhub]
+
+- name: Install JupyterHub, JupyterLab, and ipywidgets in virtual environment
+  become: true
+  ansible.builtin.pip:
+    name:
+      - wheel
+      - jupyterhub
+      - jupyterlab
+      - ipywidgets
+    executable: "{{ jupyterhub_install_path }}/bin/pip"
+  tags: [package, jupyterhub]
+
+- name: Install configurable-http-proxy globally
+  become: true
+  community.general.npm:
+    name: configurable-http-proxy
+    global: true
+  tags: [package, jupyterhub]
+
+- name: Create JupyterHub configuration directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ jupyterhub_install_path }}/etc/jupyterhub"
+    state: directory
+    mode: "0755"
+  tags: [package, jupyterhub]
+
+- name: Generate JupyterHub default configuration
+  become: true
+  ansible.builtin.command: "{{ jupyterhub_install_path }}/bin/jupyterhub --generate-config"
+  args:
+    chdir: "{{ jupyterhub_install_path }}/etc/jupyterhub"
+    creates: "{{ jupyterhub_install_path }}/etc/jupyterhub/jupyterhub_config.py"
+  tags: [package, jupyterhub]
+
+- name: Set default URL to JupyterLab in configuration
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ jupyterhub_install_path }}/etc/jupyterhub/jupyterhub_config.py"
+    line: "{{ item }}"
+    insertafter: EOF
+  loop:
+    - "c.Spawner.default_url = '/lab'"
+    - "c.JupyterHub.allow_named_servers = True"
+    - "c.LocalAuthenticator.allow_all = True"
+  tags: [package, jupyterhub]
+
+- name: Create JupyterHub systemd directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ jupyterhub_install_path }}/etc/systemd"
+    state: directory
+    mode: "0755"
+  tags: [package, jupyterhub]
+
+- name: Create JupyterHub systemd service file
+  become: true
+  ansible.builtin.template:
+    src: jupyterhub.service.j2
+    dest: "{{ jupyterhub_install_path }}/etc/systemd/jupyterhub.service"
+    owner: slurm
+    group: slurm
+    mode: "0644"
+  tags: [package, jupyterhub]
+
+- name: Symlink JupyterHub service to systemd
+  become: true
+  ansible.builtin.file:
+    src: "{{ jupyterhub_install_path }}/etc/systemd/jupyterhub.service"
+    dest: /etc/systemd/system/jupyterhub.service
+    state: link
+  tags: [package, jupyterhub]
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+  tags: [package, jupyterhub]
+
+- name: Enable JupyterHub service
+  become: true
+  ansible.builtin.systemd:
+    name: jupyterhub.service
+    enabled: true
+  tags: [package, jupyterhub]
+
+- name: Start JupyterHub service
+  become: true
+  ansible.builtin.systemd:
+    name: jupyterhub.service
+    state: started
+  tags: [package, jupyterhub]
+
+- name: Get list of installed R versions
+  ansible.builtin.find:
+    paths: /opt/apps/R/
+    file_type: directory
+  register: r_versions
+  tags: [package, jupyterhub]
+
+- name: Debug found directories
+  ansible.builtin.debug:
+    var: r_versions.files | map(attribute='path') | list
+  tags: [package, jupyterhub]
+
+- name: Set full R binary path
+  ansible.builtin.set_fact:
+    r_binary_path: >-
+      /opt/apps/R/{{ (r_versions.files
+      | map(attribute='path')
+      | map('basename')
+      | select('match', '^[0-9]+\.[0-9]+\.[0-9]+$')
+      | sort
+      | last) }}/bin/R
+  tags: [package, jupyterhub]
+
+- name: Install IRkernel package
+  become: true
+  command: '{{ r_binary_path }} -e "install.packages(''IRkernel'')"'
+  tags: [package, jupyterhub]
+
+- name: Install R kernel spec
+  become: true
+  ansible.builtin.command: "{{ r_binary_path }} -e 'IRkernel::installspec(user = FALSE)'"
+  environment:
+    PATH: "{{ jupyterhub_install_path }}/bin:{{ ansible_env.PATH }}"
+  tags: [package, jupyterhub]

@@ -10,3 +10,7 @@
 - name: Python
   ansible.builtin.include_tasks: python.yml
   tags: [package, python]
+
+- name: Jupytherhub
+  ansible.builtin.include_tasks: jupyterhub.yml
+  tags: [package, jupyterhub]
