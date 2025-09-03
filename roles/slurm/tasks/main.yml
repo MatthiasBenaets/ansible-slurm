@@ -9,6 +9,17 @@
       - slurm-wlm
       - libslurm-dev
     state: present
+  when: "'login' not in group_names"
+
+- name: Install Slurm
+  become: true
+  ansible.builtin.package:
+    name:
+      - munge
+      - libmunge2
+      - slurm-client
+    state: present
+  when: "'login' in group_names"
 
 - name: Set up slurmctld for controller
   ansible.builtin.include_tasks: slurm-controller.yml
@@ -25,5 +36,5 @@
 
 - name: Set up slurmd for compute node
   ansible.builtin.include_tasks: slurm-node.yml
-  when: "'nodes' in group_names"
+  when: "'nodes' in group_names or 'login' in group_names"
   tags: [slurm, slurm-node, openmpi]

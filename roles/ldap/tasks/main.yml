@@ -47,7 +47,7 @@
   when: "'controller' in group_names"
   tags: [ldap, ldap-controller, phpldapadmin]
 
-- name: Set up LDAP authentication for compute node
+- name: Set up LDAP authentication for login and compute node
   ansible.builtin.include_tasks: ldap-node.yml
-  when: "'nodes' in group_names"
+  when: "'nodes' in group_names or 'login' in group_names"
   tags: [ldap, ldap-node]

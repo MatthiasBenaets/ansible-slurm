@@ -6,5 +6,5 @@
 
 - name: Set up NFS client for compute nodes
   ansible.builtin.include_tasks: nfs-node.yml
-  when: "'nodes' in group_names"
+  when: "'nodes' in group_names or 'login' in group_names"
   tags: [nfs, nfs-node]

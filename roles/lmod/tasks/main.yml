@@ -12,5 +12,5 @@
 
 - name: Set up Lmod for compute nodes
   ansible.builtin.include_tasks: lmod-node.yml
-  when: "'nodes' in group_names"
+  when: "'nodes' in group_names or 'login' in group_names"
   tags: [lmod, lmod-node]

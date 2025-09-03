@@ -90,7 +90,3 @@
 - name: Set up OpenMPI
   ansible.builtin.include_tasks: openmpi.yml
   tags: [slurm, openmpi]
-
-- name: Create custom /etc/motd
-  ansible.builtin.include_tasks: motd.yml
-  tags: [slurm, motd]
