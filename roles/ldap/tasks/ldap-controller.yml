@@ -82,6 +82,16 @@
     creates: /etc/ldap/ssl/.tls_configured
   tags: [ldap, ldap-controller]
 
+- name: Configure slapd to listen on LDAPS
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/default/slapd
+    regexp: "^SLAPD_SERVICES="
+    line: 'SLAPD_SERVICES="ldap:/// ldapi:/// ldaps:///"'
+    state: present
+  notify: Restart slapd
+  tags: [ldap, ldap-controller]
+
 - name: Configure ldap.conf
   become: true
   ansible.builtin.template:

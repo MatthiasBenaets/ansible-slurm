@@ -12,3 +12,9 @@
     name: apache2
     state: restarted
     enabled: true
+
+- name: Restart slapd
+  become: true
+  ansible.builtin.service:
+    name: slapd
+    state: restarted
