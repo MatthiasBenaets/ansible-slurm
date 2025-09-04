@@ -1,0 +1,13 @@
+---
+v2:
+  metadata:
+    title: "Cluster"
+    hidden: false
+  login:
+    host: "{{ groups['login'][0] }}"
+
+  job:
+    adapter: "slurm"
+    host: "{{ groups['controller'][0] }}"
+    bin: "/usr/bin"
+    conf: "/etc/slurm/slurm.conf"

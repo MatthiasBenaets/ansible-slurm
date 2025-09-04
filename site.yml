@@ -57,6 +57,13 @@
   roles:
     - slurm
 
+- name: Set up Open OnDemand
+  hosts: login
+  remote_user: "{{ remote_user }}"
+  tags: openondemand
+  roles:
+    - openondemand
+
 - name: Install cluster packages
   hosts: controller
   remote_user: "{{ remote_user }}"

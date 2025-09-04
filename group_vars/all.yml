@@ -11,15 +11,19 @@ auth_backend: ldap # ad/ldap/local
 # ACTIVE DIRECTORY
 ad_user: Administrator
 ad_password: secret
-ad_domain: "ad.{{domain_name}}"
+ad_domain: "ad.{{ domain_name }}"
+ad_base_dn: "dc=ad,dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
+ad_admin_dn: "cn={{ ad_user }},cn=Users,{{ ad_base_dn }}"
 ad_rdns: true # enable if reverse dns lookup is enabled
 
 # LDAP
+ad_user: admin
 ldap_domain: "{{ domain_name }}"
+ldap_url: "ldap.{{ domain_name }}"
 ldap_org: "{{ domain_name.split('.')[0] }}"
 ldap_password: secret
 ldap_base_dn: "dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
-ldap_admin_dn: "cn=admin,dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
+ldap_admin_dn: "cn={{ ad_user }},dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
 
 # NFS
 shared_dir: /home
