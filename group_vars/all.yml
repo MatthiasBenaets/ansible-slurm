@@ -25,7 +25,7 @@ ldap_admin_dn: "cn=admin,dc={{ domain_name.split('.')[0] }},dc={{ domain_name.sp
 shared_dir: /home
 
 # LMOD
-shared_app: /opt
+shared_app: /opt/apps
 module_path: /opt/modulefiles
 
 # SLURM

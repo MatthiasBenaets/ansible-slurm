@@ -9,9 +9,12 @@
 - name: Mount the nfs share
   become: true
   ansible.posix.mount:
-    src: "{{ groups['controller'][0] }}:{{ shared_app }}"
-    path: "{{ shared_app }}"
+    src: "{{ groups['controller'][0] }}:{{ item }}"
+    path: "{{ item }}"
     fstype: nfs
     opts: "defaults,bg,_netdev,noatime,nodiratime,hard,intr"
     state: mounted
+  loop:
+    - "{{ shared_app }}"
+    - "{{ module_path }}"
   tags: [lmod, lmod-node]
