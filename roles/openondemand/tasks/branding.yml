@@ -1,0 +1,98 @@
+---
+- name: Set up branding css for dashboard
+  become: true
+  ansible.builtin.template:
+    src: custom.css.j2
+    dest: "/var/www/ood/public/custom.css"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Clear cache
+  tags: [ood, ood-branding]
+
+- name: Create custom dashboard branding
+  become: true
+  ansible.builtin.template:
+    src: branding.yml.j2
+    dest: "/etc/ood/config/ondemand.d/branding.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Clear cache
+    - Restart apache2
+  tags: [ood, ood-branding]
+
+- name: Move default logo
+  become: true
+  ansible.builtin.command: mv /var/www/ood/public/logo.png /var/www/ood/public/logo.png.old
+  args:
+    removes: /var/www/ood/public/logo.png
+    creates: /var/www/ood/public/logo.png.old
+  tags: [ood, ood-branding]
+
+- name: Get new logo
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ ood_logo }}"
+    dest: "/var/www/ood/public/logo.png"
+    mode: "0644"
+    owner: root
+    group: root
+  tags: [ood, ood-branding]
+
+- name: Create custom dashboard directory
+  become: true
+  ansible.builtin.file:
+    path: "/etc/ood/config/apps/dashboard"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags: [ood, ood-branding]
+
+- name: Set dashboard environment variables
+  become: true
+  ansible.builtin.copy:
+    dest: "/etc/ood/config/apps/dashboard/env"
+    content: |
+      MOTD_PATH='/etc/motd-ood'
+      MOTD_FORMAT='markdown_erb'
+      MOTD_TITLE=''
+    mode: "0644"
+    owner: root
+    group: root
+  tags: [ood, ood-branding]
+
+- name: Create motd
+  become: true
+  ansible.builtin.template:
+    src: motd.j2
+    dest: "/etc/motd-ood"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Clear cache
+    - Restart apache2
+  tags: [ood, ood-branding]
+
+- name: Copy ondemand-dex theme
+  become: true
+  ansible.builtin.command: "cp -r /usr/share/ondemand-dex/web/themes/ondemand /usr/share/ondemand-dex/web/themes/custom"
+  args:
+    creates: /usr/share/ondemand-dex/web/themes/custom
+  tags: [ood, ood-branding]
+
+- name: Setup up custom login theme
+  become: true
+  ansible.builtin.template:
+    src: styles.css.j2
+    dest: "/usr/share/ondemand-dex/web/themes/custom/styles.css"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart apache2
+    - Restart ondemand-dex
+  tags: [ood, ood-branding]

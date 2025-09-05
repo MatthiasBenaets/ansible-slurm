@@ -1,0 +1,26 @@
+### Welcome to {{ ood_motd_name}}
+
+Logged in as: **<%= ENV['USER'] %>**
+Current host: `<%= `hostname -f`.strip %>`
+Date/Time: <%= Time.now.strftime("%A, %B %d %Y - %H:%M %Z") %>
+
+---
+
+### Announcements
+<% announcements = [
+  { title: "Placeholder 2", date: "2025-09-04", body: "This is the second message of the day" },
+  { title: "Placeholder 1", date: "2025-09-03", body: "This is the first message of the day" }
+] %>
+
+<% announcements.first(3).each do |note| %>
+- **<%= note[:title] %>** – *<%= note[:date] %>*
+  <%= note[:body] %>
+
+<% end %>
+
+---
+
+### Useful Links
+- [Job Submission Guide](https://example.com/jobs)
+- [File Transfer Help](https://example.com/data)
+- [Contact Support](mailto:support@example.com)

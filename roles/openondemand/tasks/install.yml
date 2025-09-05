@@ -1,0 +1,169 @@
+---
+- name: Install Open OnDemand Dependencies
+  become: true
+  ansible.builtin.package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - git
+    state: present
+    update_cache: true
+  tags: [ood, ood-install]
+
+- name: Download OnDemand release package
+  ansible.builtin.get_url:
+    url: "{{ ood_release_deb }}"
+    dest: "{{ ood_release_file }}"
+    mode: "0644"
+  tags: [ood, ood-install]
+
+- name: Install OnDemand release package
+  become: true
+  ansible.builtin.apt:
+    deb: "{{ ood_release_file }}"
+  tags: [ood, ood-install]
+
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+  tags: [ood, ood-install]
+
+- name: Install OnDemand and dex
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ondemand
+      - ondemand-dex
+    state: present
+  tags: [ood, ood-install]
+
+- name: Ensure apache2 is running and enabled
+  become: true
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: true
+  tags: [ood, ood-install]
+
+- name: Disable default Apache site (000-default.conf)
+  become: true
+  ansible.builtin.command: mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/.000-default.conf
+  args:
+    removes: /etc/apache2/sites-available/000-default.conf
+  tags: [ood, ood-install]
+
+- name: Create OOD cert directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ ood_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags: [ood, ood-install]
+
+- name: Generate OOD private key
+  become: true
+  community.crypto.openssl_privatekey:
+    path: "{{ ood_cert_dir }}/cert.key"
+    owner: root
+    group: root
+    mode: "0600"
+  tags: [ood, ood-install]
+
+- name: Generate OOD certificate signing request (CSR)
+  become: true
+  community.crypto.openssl_csr:
+    path: "{{ ood_cert_dir }}/cert.csr"
+    privatekey_path: "{{ ood_cert_dir }}/cert.key"
+    common_name: "{{ ood_servername | default('example.com') }}"
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [ood, ood-install]
+
+- name: Generate OOD self-signed certificate
+  become: true
+  community.crypto.x509_certificate:
+    path: "{{ ood_cert_dir }}/cert.pem"
+    csr_path: "{{ ood_cert_dir }}/cert.csr"
+    privatekey_path: "{{ ood_cert_dir }}/cert.key"
+    provider: selfsigned
+    selfsigned_not_after: "+{{ ood_cert_days | default(365) }}d"
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [ood, ood-install]
+
+- name: Install cert to system trust
+  become: true
+  ansible.builtin.copy:
+    src: "{{ ood_cert_dir }}/cert.pem"
+    dest: /usr/local/share/ca-certificates/ood.key
+    mode: "0644"
+    remote_src: true
+  tags: [ood, ood-install]
+
+- name: Enable a2enmod
+  become: true
+  ansible.builtin.command: a2enmod ssl
+  changed_when: false
+  tags: [ood, ood-install]
+
+- name: Update CA certificates
+  become: true
+  command: update-ca-certificates
+  changed_when: false
+  tags: [ood, ood-install]
+
+- name: Deploy ood_portal.yml
+  become: true
+  ansible.builtin.template:
+    src: ood_portal.yml.j2
+    dest: "{{ ood_config_dir }}/ood_portal.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [ood, ood-install]
+
+- name: Deploy cluster config
+  become: true
+  ansible.builtin.template:
+    src: cluster.yml.j2
+    dest: "{{ ood_config_dir }}/clusters.d/cluster.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [ood, ood-install]
+
+- name: Create script directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ ood_script_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags: [ood, ood-install]
+
+- name: Deploy home.sh script
+  become: true
+  ansible.builtin.template:
+    src: home.sh.j2
+    dest: "{{ ood_home_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+  tags: [ood, ood-install]
+
+- name: Restart services
+  become: true
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+    enabled: true
+  loop:
+    - apache2
+    - ondemand-dex
+  tags: [ood, ood-install]

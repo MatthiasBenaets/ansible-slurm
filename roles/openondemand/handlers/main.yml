@@ -1,0 +1,16 @@
+---
+- name: Clear cache
+  become: true
+  ansible.builtin.command: /opt/ood/nginx_stage/sbin/nginx_stage nginx_clean -f
+
+- name: Restart apache2
+  become: true
+  ansible.builtin.service:
+    name: apache2
+    state: restarted
+
+- name: Restart ondemand-dex
+  become: true
+  ansible.builtin.service:
+    name: ondemand-dex
+    state: restarted
