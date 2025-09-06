@@ -1,9 +1,9 @@
 [login]
-login
+login.benaets.com
 
 [controller]
-control
+control.benaets.com
 
 [nodes]
-node1
-node2
+node1.benaets.com
+node2.benaets.com
