@@ -11,3 +11,4 @@ ood_logo: "https://www.uhasselt.be/media/ulff5zik/dsi_logo.png"
 ood_motd_name: "the DSI Slurm Cluster"
 ood_issuer: "DSI"
 ood_login_title: "Connect to DSI HPC"
+ood_host_regex: '[\w.-]+\.benaets\.com'

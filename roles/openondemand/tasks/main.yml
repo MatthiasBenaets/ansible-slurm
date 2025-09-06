@@ -1,8 +1,15 @@
 ---
 - name: Set up Open OnDemand for login node
   ansible.builtin.include_tasks: install.yml
+  when: "'login' in group_names"
   tags: [ood, ood-install]
 
 - name: Set up branding for Open OnDemand
   ansible.builtin.include_tasks: branding.yml
+  when: "'login' in group_names"
   tags: [ood, ood-branding]
+
+- name: Install interactive apps dependencies on nodes
+  ansible.builtin.include_tasks: dependencies.yml
+  when: "'nodes' in group_names"
+  tags: [ood, ood-dependencies]

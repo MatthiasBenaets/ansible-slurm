@@ -5,9 +5,19 @@ v2:
     hidden: false
   login:
     host: "{{ groups['login'][0] }}"
-
   job:
     adapter: "slurm"
     host: "{{ groups['controller'][0] }}"
     bin: "/usr/bin"
     conf: "/etc/slurm/slurm.conf"
+  batch_connect:
+    basic:
+      script_wrapper: |
+        module purge
+        %s
+    vnc:
+      script_wrapper: |
+        module purge
+        export PATH="/opt/TurboVNC/bin:$PATH"
+        export WEBSOCKIFY_CMD="/usr/bin/websockify"
+        %s

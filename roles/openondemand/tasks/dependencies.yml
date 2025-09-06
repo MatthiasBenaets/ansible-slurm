@@ -1,0 +1,46 @@
+---
+- name: Install apt compute node dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - nmap
+      - ncat
+      - websockify
+    state: present
+  tags: [ood, ood-dependencies]
+
+- name: Download TurboVNC GPG key
+  become: true
+  ansible.builtin.get_url:
+    url: https://packagecloud.io/dcommander/turbovnc/gpgkey
+    dest: /tmp/turbovnc.gpg
+    mode: "0644"
+  tags: [ood, ood-dependencies]
+
+- name: Convert GPG key to binary format
+  become: true
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /etc/apt/trusted.gpg.d/TurboVNC.gpg /tmp/turbovnc.gpg
+    creates: /etc/apt/trusted.gpg.d/TurboVNC.gpg
+  tags: [ood, ood-dependencies]
+
+- name: Add TurboVNC APT repository with signed-by option
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/TurboVNC.gpg] https://packagecloud.io/dcommander/turbovnc/any/ any main"
+    state: present
+    filename: turbovnc
+  tags: [ood, ood-dependencies]
+
+- name: Update APT cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+  tags: [ood, ood-dependencies]
+
+- name: Install latest TurboVNC
+  become: true
+  ansible.builtin.apt:
+    name: turbovnc
+    state: latest
+  tags: [ood, ood-dependencies]

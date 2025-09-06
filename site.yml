@@ -58,7 +58,7 @@
     - slurm
 
 - name: Set up Open OnDemand
-  hosts: login
+  hosts: all
   remote_user: "{{ remote_user }}"
   tags: ood
   roles:
