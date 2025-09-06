@@ -32,3 +32,4 @@
     name: slurmdbd
     state: started
     enabled: true
+  when: "'nodes' in group_names"

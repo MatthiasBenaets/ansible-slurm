@@ -27,7 +27,6 @@
     group: slurm
     mode: "644"
   notify: Restart slurmd
-  when: "'nodes' in group_names"
   tags: [slurm, slurm-node]
 
 - name: Copy over cgroup.conf
