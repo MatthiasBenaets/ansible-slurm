@@ -18,6 +18,7 @@
   loop:
     - munge
     - slurmd
+  when: "'nodes' in group_names"
 
 - name: Start MariaDB
   become: true
@@ -32,4 +33,3 @@
     name: slurmdbd
     state: started
     enabled: true
-  when: "'nodes' in group_names"
