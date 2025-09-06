@@ -60,7 +60,7 @@
 - name: Set up Open OnDemand
   hosts: login
   remote_user: "{{ remote_user }}"
-  tags: openondemand
+  tags: ood
   roles:
     - openondemand
 
