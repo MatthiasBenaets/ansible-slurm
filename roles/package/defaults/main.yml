@@ -4,7 +4,9 @@ r_install_path: "/opt/apps/R/{{ r_version }}"
 r_src_dir: "/tmp/R-{{ r_version }}"
 
 rstudio_os_release: "jammy"
-rstudio_version: "2025.05.1-513"
+rstudio_version: "v2025.05.1+513"
+rstudio_install_path: "/opt/apps/rstudio-server/{{ rstudio_version }}"
+rstudio_src_dir: "/tmp/rstudio-src"
 
 python_version: "3.12.0"
 python_install_path: "/opt/apps/python/{{ python_version }}"

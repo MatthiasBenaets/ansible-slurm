@@ -65,7 +65,7 @@
     - openondemand
 
 - name: Install cluster packages
-  hosts: controller
+  hosts: all
   remote_user: "{{ remote_user }}"
   tags: package
   roles:

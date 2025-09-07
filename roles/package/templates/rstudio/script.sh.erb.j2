@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+# Load required modules
+setup_env () {
+    module purge
+    module load R
+    module load rstudio-server
+}
+
+setup_env
+
+# Create rsession wrapper script for logging and configuration
+export RSESSION_WRAPPER_FILE="${PWD}/rsession.sh"
+(
+    umask 077
+    sed 's/^ \{2\}//' > "${RSESSION_WRAPPER_FILE}" << EOL
+#!/usr/bin/env bash
+
+# Log rsession activity
+export RSESSION_LOG_FILE="${PWD}/rsession.log"
+exec &>>"\${RSESSION_LOG_FILE}"
+
+echo "=== Starting rsession at \$(date) ==="
+echo "User: \$(whoami)"
+echo "R_LIBS_USER: ${R_LIBS_USER}"
+
+set -x
+exec rsession --r-libs-user "${R_LIBS_USER}" "\${@}"
+EOL
+)
+chmod 700 "${RSESSION_WRAPPER_FILE}"
+
+# Set working directory to home
+cd "${HOME}"
+
+# Create temporary directory for RStudio Server data
+export TMPDIR="$(mktemp -d)"
+mkdir -p "$TMPDIR/rstudio-server"
+
+# Generate secure cookie key
+python3 -c 'from uuid import uuid4; print(uuid4())' > "$TMPDIR/rstudio-server/secure-cookie-key"
+chmod 0600 "$TMPDIR/rstudio-server/secure-cookie-key"
+
+# Create database config
+cat > "$TMPDIR/rstudio-server/database.conf" << EOF
+provider=sqlite
+directory=$TMPDIR/rstudio-server
+EOF
+
+# Start RStudio Server
+echo "Starting RStudio Server on port ${port}..."
+
+rserver \
+    --server-user "$(whoami)" \
+    --www-port "${port}" \
+    --auth-none 1 \
+    --auth-encrypt-password 0 \
+    --rsession-which-r "$R_HOME/bin/R" \
+    --rsession-path "${RSESSION_WRAPPER_FILE}" \
+    --server-data-dir "$TMPDIR/rstudio-server" \
+    --database-config-file "$TMPDIR/rstudio-server/database.conf" \
+    2>&1 | tee "${PWD}/rserver.log" &
+
+RSERVER_PID=$!
+
+# Check if server started successfully
+sleep 3
+if kill -0 $RSERVER_PID 2>/dev/null; then
+    echo "RStudio Server running (PID: $RSERVER_PID)"
+    echo "Connect at: http://$(hostname):${port}"
+
+    # Keep server running until job ends
+    while kill -0 $RSERVER_PID 2>/dev/null; do
+        sleep 30
+    done
+
+    echo "RStudio Server stopped"
+else
+    echo "ERROR: RStudio Server failed to start"
+    echo "Check logs in: ${PWD}/rserver.log"
+fi
+
+# Cleanup
+rm -rf "$TMPDIR"

@@ -1,6 +1,7 @@
 ---
 - name: R
   ansible.builtin.include_tasks: r.yml
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: RStudio
@@ -9,8 +10,10 @@
 
 - name: Python
   ansible.builtin.include_tasks: python.yml
+  when: "'controller' in group_names"
   tags: [package, python]
 
 - name: Jupytherhub
   ansible.builtin.include_tasks: jupyterhub.yml
+  when: "'controller' in group_names"
   tags: [package, jupyterhub]
