@@ -13,3 +13,8 @@
   ansible.builtin.include_tasks: dependencies.yml
   when: "'nodes' in group_names"
   tags: [ood, ood-dependencies]
+
+- name: Set up interactive desktop
+  ansible.builtin.include_tasks: desktop.yml
+  when: "'nodes' in group_names or 'login' in group_names"
+  tags: [ood, ood-desktop]

@@ -1,0 +1,49 @@
+---
+- name: Install compute node dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - xfce4
+    state: present
+  when: "'nodes' in group_names"
+  tags: [ood, ood-desktop]
+
+- name: Install login node dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - rsync
+    state: present
+  when: "'login' in group_names"
+  tags: [ood, ood-desktop]
+
+- name: Create desktop (and submit) config directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/ood/config/apps/bc_desktop/submit
+    state: directory
+    recurse: true
+  when: "'login' in group_names"
+  tags: [ood, ood-desktop]
+
+- name: Configure desktop
+  become: true
+  ansible.builtin.template:
+    src: desktop/form.yml.j2
+    dest: /etc/ood/config/apps/bc_desktop/form.yml
+    owner: root
+    group: root
+    mode: "0644"
+  when: "'login' in group_names"
+  tags: [ood, ood-desktop]
+
+- name: Configure submission script
+  become: true
+  ansible.builtin.template:
+    src: desktop/submit.yml.erb.j2
+    dest: /etc/ood/config/apps/bc_desktop/submit/submit.yml.erb
+    owner: root
+    group: root
+    mode: "0644"
+  when: "'login' in group_names"
+  tags: [ood, ood-desktop]
