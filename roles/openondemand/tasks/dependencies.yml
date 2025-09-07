@@ -35,12 +35,12 @@
 - name: Update APT cache
   become: true
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
   tags: [ood, ood-dependencies]
 
 - name: Install latest TurboVNC
   become: true
   ansible.builtin.apt:
     name: turbovnc
-    state: latest
+    state: present
   tags: [ood, ood-dependencies]

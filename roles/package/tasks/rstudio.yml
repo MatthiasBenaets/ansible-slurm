@@ -194,7 +194,7 @@
   ansible.builtin.git:
     repo: https://github.com/OSC/bc_example_rstudio.git
     dest: /var/www/ood/apps/sys/rstudio
-    force: true
+    version: master
   when: "'login' in group_names"
   tags: [package, rstudio]
 

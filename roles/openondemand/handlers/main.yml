@@ -2,6 +2,7 @@
 - name: Clear cache
   become: true
   ansible.builtin.command: /opt/ood/nginx_stage/sbin/nginx_stage nginx_clean -f
+  changed_when: false
 
 - name: Restart apache2
   become: true

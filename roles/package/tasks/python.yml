@@ -40,7 +40,13 @@
 - name: Configure Python installation
   become: true
   ansible.builtin.command:
-    cmd: "./configure --prefix={{ python_install_path }} --with-pydebug --enable-optimizations --with-lto --with-ensurepip=install --enable-loadable-sqlite-extensions"
+    cmd: |
+      ./configure --prefix={{ python_install_path }} \
+      --with-pydebug \
+      --enable-optimizations \
+      --with-lto \
+      --with-ensurepip=install \
+      --enable-loadable-sqlite-extensions
     chdir: "{{ python_src_dir }}"
   changed_when: false
   tags: [package, python]

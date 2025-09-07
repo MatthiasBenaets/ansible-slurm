@@ -113,7 +113,7 @@
 
 - name: Update CA certificates
   become: true
-  command: update-ca-certificates
+  ansible.builtin.command: update-ca-certificates
   changed_when: false
   tags: [ood, ood-install]
 

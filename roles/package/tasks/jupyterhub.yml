@@ -136,7 +136,8 @@
 
 - name: Install IRkernel package
   become: true
-  command: '{{ r_binary_path }} -e "install.packages(''IRkernel'')"'
+  ansible.builtin.command: '{{ r_binary_path }} -e "install.packages(''IRkernel'')"'
+  changed_when: false
   tags: [package, jupyterhub]
 
 - name: Install R kernel spec
@@ -144,4 +145,5 @@
   ansible.builtin.command: "{{ r_binary_path }} -e 'IRkernel::installspec(user = FALSE)'"
   environment:
     PATH: "{{ jupyterhub_install_path }}/bin:{{ ansible_env.PATH }}"
+  changed_when: false
   tags: [package, jupyterhub]
