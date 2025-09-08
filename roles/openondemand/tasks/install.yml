@@ -77,7 +77,10 @@
   community.crypto.openssl_csr:
     path: "{{ ood_cert_dir }}/cert.csr"
     privatekey_path: "{{ ood_cert_dir }}/cert.key"
-    common_name: "{{ ood_servername | default('example.com') }}"
+    common_name: "{{ domain_name  | default('example.com') }}"
+    subject_alt_name:
+      - "DNS:login.{{ domain_name }}"
+      - "DNS:*.{{ domain_name }}"
     owner: root
     group: root
     mode: "0644"
