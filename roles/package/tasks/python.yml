@@ -39,7 +39,7 @@
 
 - name: Configure Python installation
   become: true
-  ansible.builtin.command:
+  ansible.builtin.shell:
     cmd: |
       ./configure --prefix={{ python_install_path }} \
       --with-pydebug \
