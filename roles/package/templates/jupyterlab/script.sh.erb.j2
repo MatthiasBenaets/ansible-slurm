@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Benchmark info
+echo "TIMING - Starting main script at: $(date)"
+
+# Set working directory to home directory
+cd "${HOME}"
+
+# Purge all modules to start clean (avoids any conflicts)
+module purge
+
+# Load only the JupyterLab module
+module load jupyterlab/<%= context.jupyterlab_version %>
+
+# Either load Python or R kernel
+<% if context.language == "python" %>
+module load python/<%= context.python_version %>
+export PYTHONPATH="$HOME/python/<%= context.python_version %>/packages"
+mkdir -p "${TMPDIR}/python<%= context.python_version %>/share/jupyter/kernels"
+ln -s "/opt/apps/python/share/jupyter/kernels/python<%= context.python_version %>" "${TMPDIR}/python<%= context.python_version %>/share/jupyter/kernels/"
+export JUPYTER_PATH="${TMPDIR}/python<%= context.python_version %>/share/jupyter"
+<% elsif context.language == "r" %>
+module load R/<%= context.r_version %>
+mkdir -p "${TMPDIR}/ir<%= context.r_version %>/share/jupyter/kernels"
+ln -s "/opt/apps/R/share/jupyter/kernels/ir<%= context.r_version %>" "${TMPDIR}/ir<%= context.r_version %>/share/jupyter/kernels/"
+export JUPYTER_PATH="${TMPDIR}/ir<%= context.r_version %>/share/jupyter"
+<% else context.language == "all" %>
+export JUPYTER_PATH="/opt/apps/python/share/jupyter:/opt/apps/R/share/jupyter"
+<% end %>
+
+# Benchmark info
+echo "TIMING - Starting jupyter at: $(date)"
+
+# Launch the JupyterLab Server with debug for troubleshooting
+set -x
+jupyter-lab --debug --config="${CONFIG_FILE}"

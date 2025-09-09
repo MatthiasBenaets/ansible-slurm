@@ -9,10 +9,47 @@
       - libbz2-dev
       - liblzma-dev
       - libpcre2-dev
+      - libssl-dev
       - libcurl4-openssl-dev
       - default-jdk
       - zlib1g-dev
     state: present
+  when: "'controller' in group_names or 'nodes' in group_names"
+  tags: [package, r]
+
+- name: Install additional build dependencies for R packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - curl
+      - cargo
+      - make
+      - cmake
+      - libudunits2-dev
+      - libabsl-dev
+      - libgdal-dev
+      - libgeos-dev
+      - libproj-dev
+      - libpq-dev
+      - librsvg2-dev
+      - libsqlite3-dev
+      - libxml2-dev
+      - libfreetype6-dev
+      - libfontconfig1-dev
+      - libharfbuzz-dev
+      - libfribidi-dev
+      - libudunits2-dev
+      - libsodium-dev
+      - libpng-dev
+      - libpng-dev
+      - libtiff-dev
+      - libtiff5-dev
+      - libxml2-dev
+      - libmagick++-dev
+      - unixodbc-dev
+      - git
+    state: present
+  when: "'nodes' in group_names"
   tags: [package, r]
 
 - name: Download R source tarball
@@ -21,6 +58,7 @@
     url: "https://cran.rstudio.com/src/base/R-{{ r_version.split('.')[0] }}/R-{{ r_version }}.tar.gz"
     dest: "/tmp/R-{{ r_version }}.tar.gz"
     mode: "644"
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Extract R source tarball
@@ -29,6 +67,7 @@
     src: "/tmp/R-{{ r_version }}.tar.gz"
     dest: "/tmp"
     remote_src: true
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Configure R installation
@@ -37,12 +76,14 @@
     cmd: "./configure --prefix={{ r_install_path }} --enable-R-shlib --enable-memory-profiling --with-blas --with-lapack --with-x=no"
     chdir: "{{ r_src_dir }}"
   changed_when: false
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Compile R
   become: true
   community.general.make:
     chdir: "{{ r_src_dir }}"
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Install R
@@ -50,6 +91,7 @@
   community.general.make:
     target: install
     chdir: "{{ r_src_dir }}"
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Create /opt/modulefiles/R directory for Lua modules
@@ -60,6 +102,7 @@
     owner: root
     group: root
     mode: "755"
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Create the Lua module file
@@ -80,6 +123,7 @@
     owner: "root"
     group: "root"
     mode: "644"
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Create .Rprofile for default CRAN mirror and user packages
@@ -99,6 +143,7 @@
     owner: "root"
     group: "root"
     mode: "644"
+  when: "'controller' in group_names"
   tags: [package, r]
 
 - name: Install R packages
@@ -108,4 +153,57 @@
     -e 'install.packages(c("parallel","doParallel","foreach","future","future.batchtools","future.apply","batchtools","snow","Rmpi","rslurm","slurmR"),
     configure.args = c("--with-Rmpi-type=OPENMPI"))'
   changed_when: false
+  when: "'controller' in group_names"
+  tags: [package, r]
+
+- name: Install IRkernel into R {{ r_version }}
+  become: true
+  ansible.builtin.command: >
+    /opt/apps/R/{{ r_version }}/bin/R --vanilla -e
+    "install.packages('IRkernel', repos='https://cloud.r-project.org')"
+  args:
+    creates: "/opt/apps/R/{{ r_version }}/lib/R/library/IRkernel"
+  when: "'controller' in group_names"
+  tags: [package, r]
+
+- name: Create R kernelspec directory
+  become: true
+  ansible.builtin.file:
+    path: "/opt/apps/R/share/jupyter/kernels/ir{{ r_version }}"
+    state: directory
+    mode: "0755"
+  when: "'controller' in group_names"
+  tags: [package, r]
+
+# create manually so it does not require JupyterLab
+- name: Register IRkernel for R {{ r_version }} centrally
+  become: true
+  ansible.builtin.copy:
+    dest: "/opt/apps/R/share/jupyter/kernels/ir{{ r_version }}/kernel.json"
+    mode: "0644"
+    content: |
+      {
+        "argv": [
+          "/opt/apps/R/{{ r_version }}/bin/R",
+          "--slave",
+          "-e",
+          "IRkernel::main()",
+          "--args",
+          "{connection_file}"
+        ],
+        "display_name": "R {{ r_version }}",
+        "language": "R"
+      }
+  when: "'controller' in group_names"
+  tags: [package, r]
+
+- name: Set logo
+  become: true
+  ansible.builtin.copy:
+    src: "r/logo-svg.svg"
+    dest: "/opt/apps/R/share/jupyter/kernels/ir{{ r_version }}/logo-svg.svg"
+    mode: "0644"
+    owner: root
+    group: root
+  when: "'controller' in group_names"
   tags: [package, r]

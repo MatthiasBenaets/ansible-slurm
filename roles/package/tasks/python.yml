@@ -87,8 +87,8 @@
       -- Set pip package location
       local home = os.getenv("HOME")
       setenv("PIP_TARGET", pathJoin(home, "python/{{ python_version }}/packages"))
-      prepend_path("PYTHONPATH", pathJoin(home, "python/3.12.0/packages"))
-      prepend_path("PATH", pathJoin(home, "python/3.12.0/packages/bin"))
+      prepend_path("PYTHONPATH", pathJoin(home, "python/{{ python_version }}/packages"))
+      prepend_path("PATH", pathJoin(home, "python/{{ python_version }}/packages/bin"))
 
       -- Create aliases
       set_alias("python", "/opt/apps/python/{{ python_version }}/bin/python3")
@@ -96,4 +96,39 @@
     owner: root
     group: root
     mode: "644"
+  tags: [package, python]
+
+- name: Install ipykernel for Python {{ python_version }}
+  become: true
+  ansible.builtin.pip:
+    name: ipykernel
+    state: present
+    executable: "/opt/apps/python/{{ python_version }}/bin/pip3"
+  tags: [package, python]
+
+- name: Register ipykernel for each Python version centrally
+  become: true
+  ansible.builtin.command: >
+    /opt/apps/python/{{ python_version }}/bin/python3 -m ipykernel install
+    --prefix=/opt/apps/python
+    --name=python{{ python_version }}
+    --display-name 'Python {{ python_version }}'
+  args:
+    creates: "/opt/apps/python/share/jupyter/kernels/python{{ python_version }}/kernel.json"
+  when: "'controller' in group_names"
+  tags: [package, python]
+
+# required for JupyterLab
+- name: Set symlinks for commands
+  become: true
+  ansible.builtin.file:
+    src: "/opt/apps/python/{{ python_version }}/bin/{{ item.from }}"
+    dest: "/opt/apps/python/{{ python_version }}/bin/{{ item.to }}"
+    state: link
+  loop:
+    - from: python3
+      to: python
+    - from: pip3
+      to: pip
+  when: "'controller' in group_names"
   tags: [package, python]

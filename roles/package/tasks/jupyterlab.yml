@@ -1,0 +1,173 @@
+---
+- name: Install JupyterLab system dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - python3-venv
+      - python3-pip
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Create JupyterLab installation directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ jupyterlab_install_path }}"
+    state: directory
+    mode: "0755"
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Create JupyterLab virtual environment
+  become: true
+  ansible.builtin.command:
+    cmd: "python3 -m venv {{ jupyterlab_install_path }}"
+    creates: "{{ jupyterlab_install_path }}/bin/python"
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Upgrade pip in virtual environment
+  become: true
+  ansible.builtin.pip:
+    name: pip
+    state: latest
+    executable: "{{ jupyterlab_install_path }}/bin/pip"
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Install JupyterLab and essential packages
+  become: true
+  ansible.builtin.pip:
+    name:
+      - jupyterlab=={{ jupyterlab_version }}
+      - ipywidgets
+      - jupyterlab-widgets
+      - ipykernel
+      - notebook
+    executable: "{{ jupyterlab_install_path }}/bin/pip"
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Create environment modules directory for JupyterLab
+  become: true
+  ansible.builtin.file:
+    path: "/opt/modulefiles/jupyterlab"
+    state: directory
+    mode: "0755"
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Create JupyterLab module file
+  become: true
+  ansible.builtin.copy:
+    content: |
+      whatis("JupyterLab {{ jupyterlab_version }}")
+
+      -- Set in script.sh.erb
+      --setenv("JUPYTER_PATH", "/opt/apps/python/share/jupyter:/opt/apps/R/share/jupyter")
+      setenv("JUPYTERLAB_DIR", "/opt/apps/jupyterlab/{{ jupyterlab_version }}/share/jupyter/lab")
+
+      --prepend_path("PYTHONPATH", "/opt/apps/jupyterlab/{{ jupyterlab_version }}/lib/python3.*/site-packages")
+      prepend_path("PATH", "/opt/apps/jupyterlab/{{ jupyterlab_version }}/bin")
+    dest: "/opt/modulefiles/jupyterlab/{{ jupyterlab_version }}.lua"
+    mode: "0644"
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Set permissions for JupyterLab installation
+  become: true
+  ansible.builtin.file:
+    path: "{{ jupyterlab_install_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+    recurse: true
+  when: "'controller' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Create OOD JupyterLab app directory
+  become: true
+  ansible.builtin.file:
+    path: "/var/www/ood/apps/sys/jupyterlab"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Clone Jupyter example app
+  become: true
+  ansible.builtin.git:
+    repo: https://github.com/OSC/bc_example_jupyter.git
+    dest: /var/www/ood/apps/sys/jupyterlab
+    version: master
+    force: true
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Replace form template
+  become: true
+  ansible.builtin.template:
+    src: "jupyterlab/form.yml.erb.j2"
+    dest: "/var/www/ood/apps/sys/jupyterlab/form.yml.erb"
+    mode: "0644"
+    owner: root
+    group: root
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Replace submit template
+  become: true
+  ansible.builtin.template:
+    src: "jupyterlab/submit.yml.erb.j2"
+    dest: "/var/www/ood/apps/sys/jupyterlab/submit.yml.erb"
+    mode: "0644"
+    owner: root
+    group: root
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Replace manifest template
+  become: true
+  ansible.builtin.template:
+    src: "jupyterlab/manifest.yml.j2"
+    dest: "/var/www/ood/apps/sys/jupyterlab/manifest.yml"
+    mode: "0644"
+    owner: root
+    group: root
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Replace script template
+  become: true
+  ansible.builtin.template:
+    src: "jupyterlab/script.sh.erb.j2"
+    dest: "/var/www/ood/apps/sys/jupyterlab/template/script.sh.erb"
+    mode: "0755"
+    owner: root
+    group: root
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Replace before script template
+  become: true
+  ansible.builtin.template:
+    src: "jupyterlab/before.sh.erb.j2"
+    dest: "/var/www/ood/apps/sys/jupyterlab/template/before.sh.erb"
+    mode: "0755"
+    owner: root
+    group: root
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]
+
+- name: Restart OOD web server
+  become: true
+  ansible.builtin.service:
+    name: apache2
+    state: restarted
+  when: "'login' in group_names"
+  tags: [package, jupyterlab]

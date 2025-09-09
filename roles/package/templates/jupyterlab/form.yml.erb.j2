@@ -1,0 +1,102 @@
+---
+cluster: "{{ slurm_cluster_name }}"
+form:
+  - bc_account
+  - bc_queue
+  - bc_num_hours
+  - bc_num_slots
+  - num_cores
+  - memory_gb
+  - jupyterlab_version
+  - language
+  - python_version
+  - r_version
+
+attributes:
+  bc_account:
+    widget: text_field
+    label: "Account"
+    help: "Slurm account. Not required."
+    required: false
+  bc_queue:
+    widget: select
+    label: "Partition"
+    help: "The compute partition to use."
+    options:
+      - ["debug", "debug"]
+    value: "debug"
+  bc_num_hours:
+    help: "Total time to allocate for the session."
+    value: 1
+    min: 1
+    max: 8
+    step: 1
+  bc_num_slots:
+    help: "Number of nodes to allocate for the session."
+    value: 1
+    min: 1
+    max: 1
+    step: 1
+  num_cores:
+    widget: number_field
+    label: "Number of cores"
+    help: "Processor cores to allocate for the session."
+    value: 1
+    min: 1
+    max: 2
+    step: 1
+  memory_gb:
+    widget: number_field
+    label: "Number of memory"
+    help: "Memory to allocate for the session (in GB)."
+    value: 1
+    min: 1
+    max: 2
+    step: 1
+  jupyterlab_version:
+    widget: select
+    label: "JupyterLab Version"
+    help: "Choose the JupyterLab version for this session."
+    options:
+<%
+  jupyterlab_versions = Dir.glob("/opt/apps/jupyterlab/[0-9]*.[0-9]*").map { |d| File.basename(d) }.sort
+  jupyterlab_versions.each do |ver|
+%>
+      - ["<%= ver %>", "<%= ver %>"]
+<% end %>
+    value: "<%= jupyterlab_versions.last %>"
+  language:
+    widget: select
+    label: "Choose Language"
+    options:
+      - ["Python", "python",
+         data-hide-r-version: true]
+      - ["R", "r",
+         data-hide-python-version: true]
+      - ["All", "all",
+         data-hide-python-version: true,
+         data-hide-r-version: true]
+  python_version:
+    widget: select
+    label: "Python Version"
+    help: "Choose the Python version for this JupyterLab session."
+    options:
+<%
+  python_versions = Dir.glob("/opt/apps/python/[0-9]*.[0-9]*").map { |d| File.basename(d) }.sort
+  python_versions.each do |ver|
+%>
+      - ["<%= ver %>", "<%= ver %>"]
+<% end %>
+    value: "<%= python_versions.last %>"
+  r_version:
+    widget: select
+    label: "R Version"
+    help: "Choose the R version."
+    options:
+<%
+  r_versions = Dir.glob("/opt/apps/R/[0-9]*.[0-9]*").map { |d| File.basename(d) }.sort
+  r_versions.each do |ver|
+%>
+      - ["<%= ver %>", "<%= ver %>"]
+<% end %>
+    value: "<%= r_versions.last %>"
