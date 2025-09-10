@@ -29,11 +29,11 @@
   when: "'controller' in group_names"
   tags: [package, jupyterlab]
 
-- name: Upgrade pip in virtual environment
+- name: Ensure pip in virtual environment
   become: true
   ansible.builtin.pip:
     name: pip
-    state: latest
+    state: present
     executable: "{{ jupyterlab_install_path }}/bin/pip"
   when: "'controller' in group_names"
   tags: [package, jupyterlab]

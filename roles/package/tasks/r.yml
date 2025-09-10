@@ -176,7 +176,7 @@
   tags: [package, r]
 
 # create manually so it does not require JupyterLab
-- name: Register IRkernel for R {{ r_version }} centrally
+- name: Centrally register IRkernel for R {{ r_version }}
   become: true
   ansible.builtin.copy:
     dest: "/opt/apps/R/share/jupyter/kernels/ir{{ r_version }}/kernel.json"
