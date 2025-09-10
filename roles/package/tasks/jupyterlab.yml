@@ -97,7 +97,7 @@
     owner: root
     group: root
   when: "'login' in group_names"
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: Clone Jupyter example app
   become: true
@@ -107,7 +107,7 @@
     version: master
     force: true
   when: "'login' in group_names"
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: Replace form template
   become: true
@@ -118,7 +118,7 @@
     owner: root
     group: root
   when: "'login' in group_names"
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: Replace submit template
   become: true
@@ -129,7 +129,7 @@
     owner: root
     group: root
   when: "'login' in group_names"
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: Replace manifest template
   become: true
@@ -140,7 +140,7 @@
     owner: root
     group: root
   when: "'login' in group_names"
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: Replace script template
   become: true
@@ -151,7 +151,7 @@
     owner: root
     group: root
   when: "'login' in group_names"
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: Replace before script template
   become: true
@@ -162,7 +162,7 @@
     owner: root
     group: root
   when: "'login' in group_names"
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: Restart OOD web server
   become: true

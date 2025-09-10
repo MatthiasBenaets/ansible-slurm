@@ -6,7 +6,7 @@
 
 - name: Jupyterlab
   ansible.builtin.include_tasks: jupyterlab.yml
-  tags: [package, jupyterlab]
+  tags: [package, jupyterlab, jupyterlab-ood]
 
 - name: R
   ansible.builtin.include_tasks: r.yml
