@@ -24,8 +24,6 @@ module load R/<%= context.r_version %>
 mkdir -p "${TMPDIR}/ir<%= context.r_version %>/share/jupyter/kernels"
 ln -s "/opt/apps/R/share/jupyter/kernels/ir<%= context.r_version %>" "${TMPDIR}/ir<%= context.r_version %>/share/jupyter/kernels/"
 export JUPYTER_PATH="${TMPDIR}/ir<%= context.r_version %>/share/jupyter"
-<% else context.language == "all" %>
-export JUPYTER_PATH="/opt/apps/python/share/jupyter:/opt/apps/R/share/jupyter"
 <% end %>
 
 # Benchmark info

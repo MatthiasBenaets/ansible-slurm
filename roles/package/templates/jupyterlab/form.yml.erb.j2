@@ -6,11 +6,12 @@ form:
   - bc_num_hours
   - bc_num_slots
   - num_cores
-  - memory_gb
+  - num_memory
   - jupyterlab_version
   - language
   - python_version
   - r_version
+  - bc_email_on_started
 
 attributes:
   bc_account:
@@ -23,8 +24,11 @@ attributes:
     label: "Partition"
     help: "The compute partition to use."
     options:
-      - ["debug", "debug"]
-    value: "debug"
+<% partitions = `sinfo -h -o "%P"`.lines.map(&:strip).map { |p| p.sub('*', '') }.uniq %>
+<% partitions.each do |p| %>
+      - ["<%= p %>", "<%= p %>"]
+<% end %>
+    value: "<%= partitions.first %>"
   bc_num_hours:
     help: "Total time to allocate for the session."
     value: 1
@@ -45,14 +49,15 @@ attributes:
     min: 1
     max: 2
     step: 1
-  memory_gb:
+  num_memory:
     widget: number_field
     label: "Number of memory"
-    help: "Memory to allocate for the session (in GB)."
-    value: 1
-    min: 1
+    help: "Memory to allocate for the session (in GB per node)."
+    min: 0
     max: 2
     step: 1
+    value: 1
+    required: false
   jupyterlab_version:
     widget: select
     label: "JupyterLab Version"
@@ -73,9 +78,6 @@ attributes:
          data-hide-r-version: true]
       - ["R", "r",
          data-hide-python-version: true]
-      - ["All", "all",
-         data-hide-python-version: true,
-         data-hide-r-version: true]
   python_version:
     widget: select
     label: "Python Version"
