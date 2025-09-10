@@ -41,3 +41,9 @@ script:
     <% end %>
     - "-J"
     - "Jupyter <%= jupyterlab_version %> - <%= language == 'python' ? 'Python ' + python_version : 'R ' + r_version %> "
+    <% if !user_email.blank? %>
+    - "--mail-type"
+    - "BEGIN,END,FAIL,TIME_LIMIT"
+    - "--mail-user"
+    - "<%= user_email %>"
+    <% end %>

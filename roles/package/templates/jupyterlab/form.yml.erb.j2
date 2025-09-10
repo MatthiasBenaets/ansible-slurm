@@ -11,7 +11,7 @@ form:
   - language
   - python_version
   - r_version
-  - bc_email_on_started
+  - user_email
 
 attributes:
   bc_account:
@@ -102,3 +102,8 @@ attributes:
       - ["<%= ver %>", "<%= ver %>"]
 <% end %>
     value: "<%= r_versions.last %>"
+  user_email:
+    widget: email_field
+    label: "Email"
+    help: "Leave you email to be notified when your queued job has started."
+    required: false

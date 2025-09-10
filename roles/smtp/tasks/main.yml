@@ -1,0 +1,88 @@
+---
+- name: Ensure debconf-utils is installed for controller
+  become: true
+  ansible.builtin.package:
+    name: debconf-utils
+    state: present
+  tags: [smtp]
+
+- name: Set debconf selections for Postfix (Internet with smarthost configuration)
+  become: true
+  ansible.builtin.debconf:
+    name: postfix
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  loop:
+    - question: "postfix/mailname"
+      value: "{{ postfix_server_name }}"
+      vtype: "string"
+    - question: "postfix/main_mailer_type"
+      value: "Internet with smarthost"
+      vtype: "select"
+    - question: "postfix/relayhost"
+      value: "{{ relay_host }}"
+      vtype: "string"
+    - question: "postfix/destinations"
+      value: "{{ postfix_server_name }}, localhost.localdomain, localhost"
+      vtype: "string"
+    - question: "postfix/mynetworks"
+      value: "127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128"
+      vtype: "string"
+    - question: "postfix/protocols"
+      value: "all"
+      vtype: "select"
+  tags: [smtp]
+
+- name: Install required packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - postfix
+      - mailutils
+      - libsasl2-2
+      - ca-certificates
+      - libsasl2-modules
+    state: present
+    update_cache: true
+  tags: [smtp]
+
+- name: Add configuration lines to /etc/postfix/main.cf
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postfix/main.cf
+    line: "{{ item }}"
+    state: present
+  loop:
+    - "relayhost = {{ relay_host }}"
+    - "smtp_sasl_auth_enable = yes"
+    - "smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd"
+    - "smtp_sasl_security_options ="
+    - "smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt"
+    - "smtp_use_tls = yes"
+  tags: [smtp]
+
+- name: Create /etc/postfix/sasl_passwd file
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/postfix/sasl_passwd
+    content: "{{ relay_host }}    {{ mail_username }}:{{ mail_password }}"
+    mode: "0600"
+    owner: root
+    group: root
+  tags: [smtp]
+
+- name: Generate Postfix lookup table
+  become: true
+  ansible.builtin.command:
+    cmd: "postmap /etc/postfix/sasl_passwd"
+    # creates: /etc/postfix/sasl_passwd.db
+  changed_when: false
+  tags: [smtp]
+
+- name: Restart Postfix service
+  become: true
+  ansible.builtin.service:
+    name: postfix
+    state: restarted
+  tags: [smtp]

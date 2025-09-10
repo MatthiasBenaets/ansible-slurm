@@ -20,6 +20,13 @@
   roles:
     - hostname
 
+- name: Set up SMTP relay on controller
+  hosts: controller
+  remote_user: "{{ remote_user }}"
+  tags: smtp
+  roles:
+    - smtp
+
 - name: Join Active Directory
   hosts: all
   remote_user: "{{ remote_user }}"

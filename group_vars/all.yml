@@ -3,7 +3,13 @@
 # ansible_sudo_pass: secret
 remote_user: matthias
 timezone: Europe/Brussels
-domain_name: example.com
+domain_name: benaets.com
+
+# MAIL
+postfix_server_name: "benaets.com"
+mail_username: "secret@gmail.com"
+mail_password: "secret"  # Use App Password for Google
+relay_host: "[smtp.gmail.com]:587"
 
 # AUTHENTICATION
 auth_backend: ldap # ad/ldap/local

@@ -14,3 +14,9 @@ script:
     <% end %>
     - "-J"
     - "Rstudio <%= rstudio_version %> - R <%= r_version %> "
+    <% if !user_email.blank? %>
+    - "--mail-type"
+    - "BEGIN,END,FAIL,TIME_LIMIT"
+    - "--mail-user"
+    - "<%= user_email %>"
+    <% end %>
