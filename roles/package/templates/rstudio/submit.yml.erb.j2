@@ -1,0 +1,16 @@
+---
+batch_connect:
+  template: "basic"
+
+script:
+  native:
+    - "-N"
+    - "<%= bc_num_slots.blank? ? 1 : bc_num_slots.to_i %>"
+    - "-c"
+    - "<%= num_cores.blank? ? 1 : num_cores.to_i %>"
+    <% if !num_memory.blank? && num_memory.to_i > 0 %>
+    - "--mem"
+    - "<%= num_memory.to_i %>G"
+    <% end %>
+    - "-J"
+    - "Rstudio <%= rstudio_version %> - R <%= r_version %> "

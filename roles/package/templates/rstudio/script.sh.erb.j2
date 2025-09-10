@@ -3,8 +3,8 @@
 # Load required modules
 setup_env () {
     module purge
-    module load R
-    module load rstudio-server
+    module load R/<%= context.r_version %>
+    module load rstudio-server/<%= context.rstudio_version %>
 }
 
 setup_env
@@ -50,6 +50,7 @@ EOF
 # Start RStudio Server
 echo "Starting RStudio Server on port ${port}..."
 
+export R_LIBS_USER="${HOME}/R/<%= context.r_version %>/library"
 rserver \
     --server-user "$(whoami)" \
     --www-port "${port}" \

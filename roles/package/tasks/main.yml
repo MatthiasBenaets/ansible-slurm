@@ -14,4 +14,4 @@
 
 - name: RStudio
   ansible.builtin.include_tasks: rstudio.yml
-  tags: [package, rstudio]
+  tags: [package, rstudio, rstudio-ood]

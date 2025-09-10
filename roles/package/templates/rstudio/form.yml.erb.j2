@@ -1,0 +1,81 @@
+---
+cluster: "{{ slurm_cluster_name }}"
+form:
+  - bc_account
+  - bc_queue
+  - bc_num_hours
+  - bc_num_slots
+  - num_cores
+  - num_memory
+  - rstudio_version
+  - r_version
+  - bc_email_on_started
+
+attributes:
+  bc_account:
+    widget: text_field
+    label: "Account"
+    help: "Slurm account. Not required."
+    required: false
+  bc_queue:
+    widget: select
+    label: "Partition"
+    help: "The compute partition to use."
+    options:
+<% partitions = `sinfo -h -o "%P"`.lines.map(&:strip).map { |p| p.sub('*', '') }.uniq %>
+<% partitions.each do |p| %>
+      - ["<%= p %>", "<%= p %>"]
+<% end %>
+    value: "<%= partitions.first %>"
+  bc_num_hours:
+    help: "Total time to allocate for the session."
+    value: 1
+    min: 1
+    max: 8
+    step: 1
+  bc_num_slots:
+    help: "Number of nodes to allocate for the session."
+    value: 1
+    min: 1
+    max: 1
+    step: 1
+  num_cores:
+    widget: number_field
+    label: "Number of cores"
+    help: "Processor cores to allocate for the session."
+    value: 1
+    min: 1
+    max: 2
+    step: 1
+  num_memory:
+    widget: number_field
+    label: "Number of memory"
+    help: "Memory to allocate for the session, in GB per node. (0 for all available resources)"
+    min: 0
+    max: 2
+    step: 1
+    value: 1
+  rstudio_version:
+    widget: select
+    label: "Rstudio Version"
+    help: "Choose the Rstudio version for this session."
+    options:
+<%
+  rstudio_versions = Dir.glob("/opt/apps/rstudio-server/v[0-9]*.[0-9]*").map { |d| File.basename(d) }.sort
+  rstudio_versions.each do |ver|
+%>
+      - ["<%= ver %>", "<%= ver %>"]
+<% end %>
+  r_version:
+    widget: select
+    label: "R Version"
+    help: "Choose the R version."
+    options:
+<%
+  r_versions = Dir.glob("/opt/apps/R/[0-9]*.[0-9]*").map { |d| File.basename(d) }.sort
+  r_versions.each do |ver|
+%>
+      - ["<%= ver %>", "<%= ver %>"]
+<% end %>
+    value: "<%= r_versions.last %>"
+

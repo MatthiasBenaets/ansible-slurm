@@ -187,7 +187,7 @@
     group: root
     mode: "0755"
   when: "'login' in group_names"
-  tags: [package, rstudio]
+  tags: [package, rstudio, rstudio-ood]
 
 - name: Clone RStudio example app
   become: true
@@ -195,19 +195,31 @@
     repo: https://github.com/OSC/bc_example_rstudio.git
     dest: /var/www/ood/apps/sys/rstudio
     version: master
+    force: true
   when: "'login' in group_names"
-  tags: [package, rstudio]
+  tags: [package, rstudio, rstudio-ood]
 
-- name: Deploy form.yml from template
+- name: Replay form template
   become: true
   ansible.builtin.template:
-    src: rstudio/form.yml.j2
-    dest: /var/www/ood/apps/sys/rstudio/form.yml
+    src: rstudio/form.yml.erb.j2
+    dest: /var/www/ood/apps/sys/rstudio/form.yml.erb
     owner: root
     group: root
     mode: "0644"
   when: "'login' in group_names"
-  tags: [package, rstudio]
+  tags: [package, rstudio, rstudio-ood]
+
+- name: Replace submit template
+  become: true
+  ansible.builtin.template:
+    src: "rstudio/submit.yml.erb.j2"
+    dest: "/var/www/ood/apps/sys/rstudio/submit.yml.erb"
+    mode: "0644"
+    owner: root
+    group: root
+  when: "'login' in group_names"
+  tags: [package, rstudio, rstudio-ood]
 
 - name: Deploy script.sh.erb from template
   become: true
@@ -218,4 +230,4 @@
     group: root
     mode: "0755"
   when: "'login' in group_names"
-  tags: [package, rstudio]
+  tags: [package, rstudio, rstudio-ood]
