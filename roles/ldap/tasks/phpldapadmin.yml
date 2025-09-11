@@ -10,8 +10,15 @@
 - name: Configure phpLDAPadmin
   become: true
   ansible.builtin.template:
-    src: phpldapadmin-config.php.j2
-    dest: /etc/phpldapadmin/config.php
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: www-data
     mode: "644"
+  loop:
+    - src: phpldapadmin-config.php.j2
+      dest: /etc/phpldapadmin/config.php
+    - src: generalUser.xml.j2
+      dest: /usr/share/phpldapadmin/templates/creation/generalUser.xml
   notify: Restart apache2
   tags: [ldap, phpldapadmin]
