@@ -12,8 +12,8 @@
   become: true
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: '.*ldap\.{{ ldap_domain }}'
-    line: "{{ hostvars[groups['controller'][0]]['ansible_default_ipv4']['address'] }} ldap.{{ ldap_domain }}"
+    regexp: ".*{{ ldap_url }}"
+    line: "{{ hostvars[groups['controller'][0]]['ansible_default_ipv4']['address'] }} {{ ldap_url }}"
     state: present
   tags: [ldap, ldap-node]
 

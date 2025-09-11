@@ -3,8 +3,8 @@
   become: true
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: '.*ldap\.{{ ldap_domain }}'
-    line: "127.0.0.1 ldap.{{ ldap_domain }}"
+    regexp: ".*{{ ldap_url }}"
+    line: "127.0.0.1 {{ ldap_url }}"
     state: present
   tags: [ldap, ldap-controller]
 
