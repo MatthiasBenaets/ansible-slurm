@@ -16,6 +16,7 @@
     creates: /etc/passwd/slurmrestd
   register: useradd_result
   changed_when: useradd_result.rc == 0
+  ignore_errors: true
   tags: [slurm, slurmrestd-controller]
 
 - name: Create Slurm statesave directory

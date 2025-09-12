@@ -9,6 +9,7 @@
       - slurm-wlm
       - libslurm-dev
     state: present
+  tags: [slurm]
   when: "'login' not in group_names"
 
 - name: Install Slurm
@@ -19,6 +20,7 @@
       - libmunge2
       - slurm-client
     state: present
+  tags: [slurm]
   when: "'login' in group_names"
 
 - name: Set up slurmctld for controller

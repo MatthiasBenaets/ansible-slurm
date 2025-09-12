@@ -8,7 +8,7 @@ domain_name: benaets.com
 # MAIL
 postfix_server_name: "benaets.com"
 mail_username: "secret@gmail.com"
-mail_password: "secret"  # Use App Password for Google
+mail_password: "secret" # Use App Password for Google
 relay_host: "[smtp.gmail.com]:587"
 
 # AUTHENTICATION
@@ -23,13 +23,13 @@ ad_admin_dn: "cn={{ ad_user }},cn=Users,{{ ad_base_dn }}"
 ad_rdns: true # enable if reverse dns lookup is enabled
 
 # LDAP
-ad_user: admin
+ldap_user: admin
 ldap_domain: "{{ domain_name }}"
 ldap_url: "ldap.{{ domain_name }}"
 ldap_org: "{{ domain_name.split('.')[0] }}"
 ldap_password: secret
 ldap_base_dn: "dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
-ldap_admin_dn: "cn={{ ad_user }},dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
+ldap_admin_dn: "cn={{ ldap_user }},dc={{ domain_name.split('.')[0] }},dc={{ domain_name.split('.')[1] }}"
 
 # NFS
 shared_dir: /home
