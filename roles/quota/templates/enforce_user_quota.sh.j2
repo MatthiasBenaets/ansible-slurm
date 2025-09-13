@@ -1,0 +1,8 @@
+#!/bin/bash
+for USER in $(getent passwd | awk -F: '$3 >= 1000 && $7 !~ /(nologin|false)/ {print $1}'); do
+  HAS_QUOTA=$(quota -u "$USER" 2>/dev/null | awk '/home/ && $2 ~ /^[0-9]+$/ {print $2}')
+  if [ -z "$HAS_QUOTA" ]; then
+    /usr/sbin/quotatool -u "$USER" -b -q {{ quota_soft_limit }} -l {{ quota_hard_limit }} /home
+  fi
+done
+exit 0

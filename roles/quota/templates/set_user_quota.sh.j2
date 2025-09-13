@@ -1,0 +1,14 @@
+#!/bin/bash
+USER="$PAM_USER"
+
+# Skip if no user or system accounts
+if [ -z "$USER" ] || [ "$(id -u "$USER")" -lt 1000 ]; then
+  exit 0
+fi
+
+# Check if quota is already set
+CURRENT_QUOTA=$(quota -u "$USER" 2>/dev/null | awk '/home/ {print $2}')
+if [ -z "$CURRENT_QUOTA" ] || [ "$CURRENT_QUOTA" -eq 0 ]; then
+  quotatool -u "$USER" -b -q {{ quota_soft_limit }} -l {{ quota_hard_limit }} /home
+fi
+exit 0

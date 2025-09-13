@@ -1,0 +1,5 @@
+---
+- name: Remount home
+  become: true
+  ansible.builtin.command: mount -o remount /home
+  changed_when: false

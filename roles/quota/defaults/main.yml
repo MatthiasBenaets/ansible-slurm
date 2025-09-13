@@ -1,0 +1,5 @@
+---
+quota_fstype: ext4
+quota_soft_limit: 10G
+quota_hard_limit: 11G
+quota_grace_period: 604800

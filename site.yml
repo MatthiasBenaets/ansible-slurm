@@ -50,6 +50,13 @@
   roles:
     - nfs
 
+- name: Set up user quota
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: quota
+  roles:
+    - quota
+
 - name: Set up Lmod
   hosts: all
   remote_user: "{{ remote_user }}"

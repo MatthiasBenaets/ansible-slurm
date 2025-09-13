@@ -1,0 +1,136 @@
+- name: Install quota packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - quota
+      - quotatool
+    state: present
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Check if quota options are already present in fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^(\S+\s+/home\s+\S+\s+.*)(usrquota|grpquota)'
+    state: absent
+  check_mode: true
+  register: quota_check
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Enable user and group quota on filesystem in fstab
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^(\S+\s+/home\s+\S+\s+)([^,\s]+)(\s.*)$'
+    line: '\1\2,usrquota,grpquota\3'
+    backrefs: true
+  when:
+    - "'controller' in group_names"
+    - not quota_check.found
+  notify: Remount home
+  tags: [quota]
+
+- name: Remount /home filesystem with quotas enabled
+  become: true
+  ansible.builtin.command: mount -o remount /home
+  changed_when: false
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Check if quota files exist
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: quota_files
+  loop:
+    - /home/aquota.user
+    - /home/aquota.group
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Initialize user and group quota files on /home
+  become: true
+  ansible.builtin.command: quotacheck -cfum /home
+  when:
+    - "'controller' in group_names"
+    - quota_files.results | selectattr('stat.exists', 'equalto', false) | list | length > 0
+  changed_when: true
+  tags: [quota]
+
+- name: Check if quotas are already enabled on /home
+  become: true
+  ansible.builtin.command: quotaon -p /home
+  register: quota_status
+  changed_when: false
+  failed_when: false
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Enable quotas on /home
+  become: true
+  ansible.builtin.command: quotaon /home
+  changed_when: true
+  failed_when: false
+  when:
+    - "'controller' in group_names"
+    - "'is on' not in quota_status.stdout"
+  tags: [quota]
+
+- name: Set up quota script
+  become: true
+  ansible.builtin.template:
+    src: set_user_quota.sh.j2
+    dest: /usr/local/bin/set_user_quota.sh
+    mode: "0755"
+    owner: root
+    group: root
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Ensure PAM calls quota script on login
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session
+    line: "session optional pam_exec.so /usr/local/bin/set_user_quota.sh"
+    insertafter: EOF
+    state: present
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Ensure PAM calls quota script for noninteractive sessions
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session-noninteractive
+    line: "session optional pam_exec.so /usr/local/bin/set_user_quota.sh"
+    insertafter: EOF
+    state: present
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Set grace period for /home quotas
+  become: true
+  ansible.builtin.command: "setquota -t {{ quota_grace_period }} {{ quota_grace_period }} /home"
+  changed_when: true
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Create nightly quota enforcement script
+  become: true
+  ansible.builtin.template:
+    src: enforce_user_quota.sh.j2
+    dest: /usr/local/bin/enforce_user_quota.sh
+    mode: "0755"
+    owner: root
+    group: root
+  when: "'controller' in group_names"
+  tags: [quota]
+
+- name: Setup nightly cron job for quota enforcement
+  become: true
+  ansible.builtin.cron:
+    name: "Enforce user quotas"
+    user: root
+    job: "/usr/local/bin/enforce_user_quota.sh"
+    special_time: daily
+  when: "'controller' in group_names"
+  tags: [quota]
