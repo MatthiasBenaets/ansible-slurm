@@ -2,7 +2,7 @@
 - name: Set up branding css for dashboard
   become: true
   ansible.builtin.template:
-    src: custom.css.j2
+    src: branding/custom.css.j2
     dest: "/var/www/ood/public/custom.css"
     owner: root
     group: root
@@ -13,7 +13,7 @@
 - name: Create custom dashboard branding
   become: true
   ansible.builtin.template:
-    src: branding.yml.j2
+    src: branding/branding.yml.j2
     dest: "/etc/ood/config/ondemand.d/branding.yml"
     owner: root
     group: root
@@ -67,7 +67,7 @@
 - name: Create motd
   become: true
   ansible.builtin.template:
-    src: motd.j2
+    src: branding/motd.j2
     dest: "/etc/motd-ood"
     owner: root
     group: root
@@ -87,7 +87,7 @@
 - name: Setup up custom login theme
   become: true
   ansible.builtin.template:
-    src: styles.css.j2
+    src: branding/styles.css.j2
     dest: "/usr/share/ondemand-dex/web/themes/custom/styles.css"
     owner: root
     group: root
