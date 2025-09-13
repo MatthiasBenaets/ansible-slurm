@@ -1,0 +1,10 @@
+---
+- name: Set up scratch for controller
+  ansible.builtin.include_tasks: scratch-controller.yml
+  when: "'controller' in group_names and enable_scratch is true"
+  tags: [scratch, scratch-controller]
+
+- name: Set up scratch for other nodes
+  ansible.builtin.include_tasks: scratch-node.yml
+  when: "'nodes' in group_names or 'login' in group_names and enable_scratch is true"
+  tags: [scratch, scratch-node]

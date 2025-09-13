@@ -1,0 +1,59 @@
+---
+- name: Install nfs-kernel-server package
+  become: true
+  ansible.builtin.package:
+    name:
+      - nfs-kernel-server
+    state: present
+  tags: [scratch, scratch-controller]
+
+- name: Check if scratch directory exists
+  ansible.builtin.stat:
+    path: "{{ shared_scratch }}"
+  register: scratch_stat
+
+- name: Create shared_scratch
+  become: true
+  ansible.builtin.file:
+    path: "{{ shared_scratch }}"
+    state: directory
+    mode: "1777"
+  when: not scratch_stat.stat.exists
+  tags: [scratch, scratch-controller]
+
+- name: Configure exports file for shared_scratch
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    line: "{{ shared_scratch }}  *(rw,sync,root_squash,no_subtree_check)"
+    regexp: "^{{ shared_scratch }}"
+    state: present
+  notify: Start nfs-kernel-server
+
+  tags: [scratch, scratch-controller]
+
+- name: Export share
+  become: true
+  ansible.builtin.command: exportfs -a
+  changed_when: false
+  notify: Start nfs-kernel-server
+  tags: [scratch, scratch-controller]
+
+- name: Create scratch purge script
+  become: true
+  ansible.builtin.template:
+    src: purge_scratch.sh.j2
+    dest: /usr/local/bin/purge_scratch.sh
+    mode: "0755"
+    owner: root
+    group: root
+  tags: [scratch, scratch-controller]
+
+- name: Setup daily cron job for scratch purge
+  become: true
+  ansible.builtin.cron:
+    name: "Purge /scratch older than 30 days"
+    user: root
+    job: "/usr/local/bin/purge_scratch.sh"
+    special_time: daily
+  tags: [scratch, scratch-controller]

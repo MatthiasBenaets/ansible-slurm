@@ -1,0 +1,3 @@
+#!/bin/bash
+/usr/bin/find /scratch -mindepth 1 -type f -{{ scratch_time_type }} +{{ scratch_retention_days}} -delete >> /var/log/scratch_purge.log 2>&1
+/usr/bin/find /scratch -mindepth 1 -type d -empty -delete

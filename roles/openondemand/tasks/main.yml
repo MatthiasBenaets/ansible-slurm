@@ -18,3 +18,8 @@
   ansible.builtin.include_tasks: desktop.yml
   when: "'nodes' in group_names or 'login' in group_names"
   tags: [ood, ood-desktop]
+
+- name: Set up additional settings
+  ansible.builtin.include_tasks: settings.yml
+  when: "'login' in group_names"
+  tags: [ood, ood-settings]

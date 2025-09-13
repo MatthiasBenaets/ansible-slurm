@@ -33,6 +33,8 @@ ldap_admin_dn: "cn={{ ldap_user }},dc={{ domain_name.split('.')[0] }},dc={{ doma
 
 # NFS
 shared_dir: /home
+enable_scratch: true
+shared_scratch: /scratch
 
 # LMOD
 shared_app: /opt/apps

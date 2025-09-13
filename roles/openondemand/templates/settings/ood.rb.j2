@@ -1,0 +1,5 @@
+Rails.application.config.after_initialize do
+  OodFilesApp.candidate_favorite_paths.tap do |paths|
+    paths << FavoritePath.new("{{ shared_scratch }}", title: "Scratch")
+  end
+end

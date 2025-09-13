@@ -1,0 +1,21 @@
+---
+- name: Create initializers directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/ood/config/apps/dashboard/initializers
+    state: directory
+    recurse: true
+  when: "enable_scratch is true"
+  tags: [ood, ood-settings]
+
+- name: Configure desktop
+  become: true
+  ansible.builtin.template:
+    src: settings/ood.rb.j2
+    dest: /etc/ood/config/apps/dashboard/initializers/ood.rb
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "Restart apache2"
+  when: "enable_scratch is true"
+  tags: [ood, ood-settings]

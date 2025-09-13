@@ -50,6 +50,13 @@
   roles:
     - nfs
 
+- name: Set up scratch directory
+  hosts: all
+  remote_user: "{{ remote_user }}"
+  tags: scratch
+  roles:
+    - scratch
+
 - name: Set up user quota
   hosts: all
   remote_user: "{{ remote_user }}"

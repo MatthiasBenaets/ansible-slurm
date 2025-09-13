@@ -1,0 +1,38 @@
+---
+- name: Install nfs-common package
+  become: true
+  ansible.builtin.package:
+    name: nfs-common
+    state: present
+  tags: [scratch, scratch-node]
+
+- name: Force unmount stale /scratch if necessary
+  become: true
+  ansible.builtin.command: umount -f {{ shared_scratch }}
+  ignore_errors: true
+  tags: [scratch, scratch-node]
+
+- name: Check if scratch directory exists
+  ansible.builtin.stat:
+    path: "{{ shared_scratch }}"
+  register: scratch_stat
+
+- name: Create scratch directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ shared_scratch }}"
+    state: directory
+    mode: "1777"
+  when: not scratch_stat.stat.exists
+  tags: [scratch, scratch-node]
+
+- name: Mount the NFS share
+  become: true
+  ansible.posix.mount:
+    src: "{{ groups['controller'][0] }}:{{ shared_scratch }}"
+    path: "{{ shared_scratch }}"
+    fstype: nfs
+    opts: "defaults,bg,_netdev,relatime,hard,intr"
+    state: mounted
+  ignore_errors: true
+  tags: [scratch, scratch-node]
