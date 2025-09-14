@@ -3,3 +3,15 @@
   become: true
   ansible.builtin.command: mount -o remount /home
   changed_when: false
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable rpc.rquotad
+  become: true
+  ansible.builtin.service:
+    name: rpc.rquotad
+    state: started
+    enabled: true

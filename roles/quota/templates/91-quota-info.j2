@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# When run as root, we need to specify the actual user
+if [ "$EUID" -eq 0 ]; then
+    # Running as root, get the actual user from SUDO_USER or default to first regular user
+    TARGET_USER=${SUDO_USER:-$(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 {print $1; exit}')}
+else
+    TARGET_USER=$USER
+fi
+
+# Get quota info for the target user
+quota_line=$(quota -u $TARGET_USER 2>/dev/null | grep -E '[0-9]+\s+[0-9]+\s+[0-9]+')
+
+if [ -n "$quota_line" ]; then
+    # Extract the numbers - used is first, quota limit is second
+    used=$(echo $quota_line | grep -oE '[0-9]+' | sed -n '1p')
+    limit=$(echo $quota_line | grep -oE '[0-9]+' | sed -n '2p')
+
+    # Convert KB to appropriate units
+    if [ $used -lt 1024 ]; then
+        used_display="${used}K"
+    elif [ $used -lt 1048576 ]; then
+        used_display="$((used / 1024))M"
+    else
+        used_display="$((used / 1048576))G"
+    fi
+
+    if [ $limit -lt 1048576 ]; then
+        limit_display="$((limit / 1024))M"
+    else
+        limit_display="$((limit / 1048576))G"
+    fi
+
+    echo "Storage usage: $used_display / $limit_display"
+else
+    echo "Storage usage: not available"
+fi
+echo "------------------------------------------------------------"

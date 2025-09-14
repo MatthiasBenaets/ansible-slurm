@@ -22,3 +22,10 @@
       - python3-pexpect
     state: present
   tags: common
+
+- name: Clear motd for the login node
+  become: true
+  ansible.builtin.shell: "rm -f /etc/update-motd.d/*"
+  changed_when: false
+  when: "'login' in group_names"
+  tags: common

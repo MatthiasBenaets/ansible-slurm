@@ -5,7 +5,6 @@
       - quota
       - quotatool
     state: present
-  when: "'controller' in group_names"
   tags: [quota]
 
 - name: Check if quota options are already present in fstab
@@ -76,6 +75,28 @@
     - "'is on' not in quota_status.stdout"
   tags: [quota]
 
+- name: Enable rpcbind
+  become: true
+  ansible.builtin.service:
+    name: rpcbind
+    state: started
+    enabled: true
+  tags: [quota]
+
+- name: Set up rpc.rquotad as a service
+  become: true
+  ansible.builtin.template:
+    src: rpc-rquotad.service.j2
+    dest: /etc/systemd/system/rpc.rquotad.service
+    mode: "0644"
+    owner: root
+    group: root
+  when: "'controller' in group_names"
+  notify:
+    - Reload systemd
+    - Enable rpc.rquotad
+  tags: [quota]
+
 - name: Set up quota script
   become: true
   ansible.builtin.template:
@@ -134,3 +155,8 @@
     special_time: daily
   when: "'controller' in group_names"
   tags: [quota]
+
+- name: Set up motd message for quota usage
+  ansible.builtin.include_tasks: motd.yml
+  when: "'login' in group_names"
+  tags: [quota, quota-motd]

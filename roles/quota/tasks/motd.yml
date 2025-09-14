@@ -1,0 +1,10 @@
+---
+- name: Create custom /etc/motd quota message
+  become: true
+  ansible.builtin.template:
+    src: 91-quota-info.j2
+    dest: /etc/update-motd.d/91-quota-info
+    owner: root
+    group: root
+    mode: "755"
+  tags: [quota, quota-motd]
