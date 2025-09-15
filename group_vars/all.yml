@@ -6,7 +6,7 @@ timezone: Europe/Brussels
 domain_name: benaets.com
 
 # MAIL
-postfix_server_name: "benaets.com"
+postfix_server_name: "{{ domain_name }}"
 mail_username: "secret@gmail.com"
 mail_password: "secret" # Use App Password for Google
 relay_host: "[smtp.gmail.com]:587"
