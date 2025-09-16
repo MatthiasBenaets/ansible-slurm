@@ -28,6 +28,8 @@ The playbook was originally designed to provide a single-command deployment for 
 | [openondemand](roles/openondemand) | Open OnDemand configuration for user-friendly SLURM access            |
 | [package](roles/package)           | Install additional software packages (Python, R, RStudio, JupyterLab) |
 
+_Please follow the link for more information about each role._
+
 ---
 
 ## Usage
@@ -67,6 +69,14 @@ ansible-playbook \
 ```
 
 You can also override group variables or reference a custom vars file instead of passing all variables on the command line.
+
+To run the playbook, some prerequisites are required:
+
+- A login node
+- A controller node
+- Compute nodes
+- The controller node should be able to SSH into all nodes (using the same hostname as in `group_vars/all`)
+- All nodes should have Ubuntu server installed
 
 ---
 
