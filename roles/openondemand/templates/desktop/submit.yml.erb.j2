@@ -5,3 +5,13 @@ script:
     - "<%= bc_num_slots.blank? ? 1 : bc_num_slots.to_i %>"
     - "-c"
     - "<%= num_cores.blank? ? 1 : num_cores.to_i %>"
+    - "--mem"
+    - "<%= num_memory.blank? ? 1 : num_memory.to_i %>G"
+    - "-J"
+    - "Interactive Desktop"
+    <% if !user_email.blank? %>
+    - "--mail-type"
+    - "BEGIN,END,FAIL,TIME_LIMIT"
+    - "--mail-user"
+    - "<%= user_email %>"
+    <% end %>

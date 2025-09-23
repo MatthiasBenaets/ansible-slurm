@@ -2,26 +2,55 @@
 title: "Desktop"
 cluster: "{{ slurm_cluster_name }}"
 submit: "submit/submit.yml.erb"
-attributes:
-  desktop: "xfce"
-  bc_num_hours:
-    min: 1
-    max: 8
-    step: 1
-  bc_num_slots:
-    max: 2
-  num_cores:
-    widget: number_field
-    label: Number of cores
-    value: 1
-    min: 1
-    max: 8
-  bc_queue: null
 form:
   - desktop
   - bc_num_hours
   - bc_num_slots
   - num_cores
+  - num_memory
   - bc_account
   - bc_queue
-  - bc_email_on_started
+  - user_email
+
+attributes:
+  desktop: "xfce"
+  bc_num_hours:
+    help: "Total time to allocate for the session."
+    value: 1
+    min: 1
+    max: 8
+    step: 1
+  bc_num_slots:
+    help: "Number of nodes to allocate for the session."
+    value: 1
+    min: 1
+    max: 1
+    step: 1
+  num_cores:
+    widget: number_field
+    label: "Number of cores"
+    help: "Processor cores to allocate for the session."
+    value: 1
+    min: 1
+    max: 2
+    step: 1
+  num_memory:
+    widget: number_field
+    label: "Number of memory"
+    help: "Memory to allocate for the session (in GB per node)."
+    min: 0
+    max: 2
+    step: 1
+    value: 1
+    required: false
+  bc_account:
+    widget: text_field
+    label: "Account"
+    help: "Slurm account. Not required."
+    required: false
+  bc_queue: null
+  user_email:
+    widget: email_field
+    label: "Email"
+    help: "Leave you email to be notified when your queued job has started."
+    required: false
