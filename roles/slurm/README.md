@@ -102,6 +102,22 @@ ps -u $USER | grep sleep
 cat /proc/<id>/cgroup
 ```
 
+### Resource selection
+
+Slurm is currently configured to allow for multiple jobs per node.\
+This is done using the `cons_tres` plugin that is defined in the `slurm.conf` file.
+
+More info about consumable resources and parameters can be found [here](https://slurm.schedmd.com/cons_tres.html).
+
+To use the plugin, the following has been added to the `slurm.conf` file:
+
+```bash
+SelectType=select/cons_tres
+SelectTypeParameters=CR_CPU_Memory
+```
+
+It will take into account CPU and memory usage for job assignment.
+
 ### SSH login
 
 Something that has not been implemented in this playbook, but can be set up is only allowing ssh into Slurm jobs on the compute nodes.\
