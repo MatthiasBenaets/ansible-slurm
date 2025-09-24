@@ -41,6 +41,16 @@
     mode: "644"
   tags: [slurm, slurm-controller]
 
+- name: Copy over mail-wrapper
+  become: true
+  ansible.builtin.template:
+    src: mail-wrapper.j2
+    dest: "{{ mail_wrapper_path }}"
+    owner: slurm
+    group: slurm
+    mode: "755"
+  tags: [slurm, slurm-controller]
+
 - name: Create slurm spool directory
   become: true
   ansible.builtin.file:

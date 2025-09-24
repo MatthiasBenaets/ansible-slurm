@@ -9,6 +9,7 @@ domain_name: benaets.com
 postfix_server_name: "{{ domain_name }}"
 mail_username: "secret@gmail.com"
 mail_password: "secret" # Use App Password for Google
+mail_display_name: "HPC"
 relay_host: "[smtp.gmail.com]:587"
 
 # AUTHENTICATION
